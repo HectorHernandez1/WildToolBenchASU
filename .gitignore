@@ -1,6 +1,8 @@
 .idea/*
 __pycache__/
 wild-tool-bench/.env
+wild-tool-bench/*.log
 multi-agent-framework/.env
 wild-tool-bench/result/
 wild-tool-bench/score/
+.claude

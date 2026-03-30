@@ -182,6 +182,10 @@ def calc_accuracy(model_name, all_test_entries, score_results):
         english_turn_subtypes = test_entry["english_turn_subtypes"]
         answer_list = test_entry["answer_list"]
 
+        if isinstance(results, str):
+            # Skip entries that errored during inference (e.g. timeouts)
+            total_info["session"]["total_count"] += 1
+            continue
         total_info["session"]["total_count"] += 1
         session_correct = True
         for i, result in enumerate(results):
@@ -273,6 +277,10 @@ def runner(model_names, result_dir, score_dir):
         for model_result in model_results:
             id_ = model_result["id"]
             results = model_result["result"]
+            if isinstance(results, str):
+                # Skip entries that errored during inference (e.g. timeouts)
+                score_results.append({"id": id_, "results": results})
+                continue
             for result in results:
                 action_name_label, action_arguments_label = params_checker(result)
                 if action_name_label == "error" or action_arguments_label == "error":
