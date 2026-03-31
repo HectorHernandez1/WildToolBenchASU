@@ -10,6 +10,7 @@ api_inference_handler_map = {
     "hunyuan-2.0-thinking-20251109": HunYuanAPIHandler,
     "hunyuan-2.0-instruct-20251111": HunYuanAPIHandler,
     # Ollama local models (OpenAI-compatible endpoint, with per-request timeout)
+    "qwen3:8b": OllamaHandler,
     "qwen3:14b": OllamaHandler,
     "qwen3:32b": OllamaHandler,
 }
