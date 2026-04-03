@@ -13,6 +13,7 @@ api_inference_handler_map = {
     "qwen3:8b": OllamaHandler,
     "qwen3:14b": OllamaHandler,
     "qwen3:32b": OllamaHandler,
+    "gemma4:31b": OllamaHandler,
 }
 
 HANDLER_MAP = {**api_inference_handler_map}
