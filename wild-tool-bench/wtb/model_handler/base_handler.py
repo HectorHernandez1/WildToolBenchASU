@@ -276,6 +276,7 @@ class BaseHandler:
 
         # print("generate", len(answer_list), flush=True)
 
+        MAX_STEPS = 20  # Prevent infinite loops — no task should need more than 20 steps
         step = 0
         action_name_label = "error"
         predict_result = []
@@ -288,7 +289,7 @@ class BaseHandler:
         latency = []
         input_token_count = []
         output_token_count = []
-        while True:
+        while step < MAX_STEPS:
             print("-" * 100, flush=True)
             print(
                 f"ID: {test_entry_id.replace('wild_tool_bench_', '')}, Task: {task_idx}, Step: {step}", flush=True
