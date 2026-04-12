@@ -5,6 +5,10 @@ set -e
 
 cd "$(dirname "$0")"
 
+# Activate the wildtoolbench conda environment
+eval "$(conda shell.bash hook 2>/dev/null)"
+conda activate wildtoolbench
+
 MODELS=("qwen3:8b" "qwen3:14b" "qwen3:32b" "gemma4:31b")
 
 echo "=== Enhanced WildToolBench Evaluation ==="
@@ -14,7 +18,7 @@ echo ""
 # Phase 1: Inference
 for model in "${MODELS[@]}"; do
     echo "--- Running inference for $model ---"
-    python -m wtb._llm_response_generation \
+    python -u -m wtb.openfunctions_evaluation \
         --model "$model" \
         --temperature 0.0 \
         --num-threads 1 \
