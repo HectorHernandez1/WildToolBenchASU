@@ -141,12 +141,79 @@ class BaseHandler:
 
         return new_messages
 
+    def _build_system_prompt(self, env_info):
+        return (
+            f"Current Date: {env_info}\n\n"
+            "You are a helpful assistant with access to tools. Follow these guidelines:\n\n"
+            "1. TOOL USE vs. CLARIFICATION vs. CONVERSATION:\n"
+            "   - Call a tool ONLY when you have all the required parameters.\n"
+            "   - If the user's request is missing required information, use "
+            "'ask_user_for_required_parameters' to ask for clarification BEFORE calling the tool.\n"
+            "   - If the user is making casual conversation, respond conversationally "
+            "WITHOUT calling any tools.\n\n"
+            "2. ARGUMENT PRECISION:\n"
+            "   - Use ONLY the parameters defined in the tool schema. Do NOT add extra parameters.\n"
+            "   - Never invent or hallucinate argument values. Use exactly what the user provided "
+            "or what was returned by a previous tool call.\n\n"
+            "3. MULTI-STEP REQUESTS:\n"
+            "   - When the user asks for multiple things, identify which tool calls can run "
+            "in parallel (independent) vs. which must run sequentially (one depends on another's result).\n"
+            "   - Make all independent calls together in a single step.\n\n"
+            "4. CONVERSATION CONTEXT:\n"
+            "   - Pay close attention to references like 'that location', 'the same date', "
+            "'one of the above', etc. Resolve them using information from earlier in the conversation.\n"
+            "   - When the user says 'the same X' or 'that X', look back through the conversation "
+            "to find the exact value they are referring to.\n"
+        )
+
+    def _build_context_summary(self, history_tasks, history_answer_lists):
+        """Extract key entities from conversation history for coreference resolution."""
+        if not history_tasks:
+            return ""
+
+        entities = []
+        for task, answer_list in zip(history_tasks, history_answer_lists):
+            for answer in answer_list:
+                action = answer.get("action", {})
+                action_name = action.get("name", "")
+                action_args = action.get("arguments", {})
+                if action_name in ("prepare_to_answer", "ask_user_for_required_parameters"):
+                    continue
+                if isinstance(action_args, dict):
+                    for key, value in action_args.items():
+                        if isinstance(value, str) and len(value) < 100:
+                            entities.append(f"{key}={value}")
+                        elif isinstance(value, (int, float, bool)):
+                            entities.append(f"{key}={value}")
+
+        if not entities:
+            return ""
+
+        # Deduplicate while preserving order
+        seen = set()
+        unique_entities = []
+        for e in entities:
+            if e not in seen:
+                seen.add(e)
+                unique_entities.append(e)
+
+        return (
+            "\n[Context from prior turns: " + ", ".join(unique_entities[-20:]) + "]\n"
+        )
+
     def _pre_messages_processing(self, env_info, current_task, history_tasks, history_answer_lists, consecutive_tool_messages=True):
-        messages = [{"role": "system", "content": f"Current Date: {env_info}"}]
+        messages = [{"role": "system", "content": self._build_system_prompt(env_info)}]
         for history_task, history_answer_list in zip(history_tasks, history_answer_lists):
             history_messages = self._add_action_observation(history_task, history_answer_list, consecutive_tool_messages)
             messages.extend(history_messages)
-        messages.append({"role": "user", "content": current_task})
+
+        # Inject context summary for coreference resolution on subsequent turns
+        context_summary = self._build_context_summary(history_tasks, history_answer_lists)
+        if context_summary:
+            messages.append({"role": "user", "content": context_summary + current_task})
+        else:
+            messages.append({"role": "user", "content": current_task})
+
         messages = self._convert_to_tool_calls(messages)
 
         return messages

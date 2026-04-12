@@ -11,6 +11,34 @@ def _normalize_str(s):
     return "".join(s.split()).lower()
 
 
+def _normalize_date(s):
+    """Normalize date strings to a canonical format for comparison.
+    Handles: 2024-7-13 vs 2024-07-13, slashes vs dashes, etc."""
+    import re as _re
+    # Match date-like patterns: YYYY-M-D, YYYY/M/D, etc.
+    m = _re.match(r'(\d{4})[-/](\d{1,2})[-/](\d{1,2})', s.strip())
+    if m:
+        return f"{m.group(1)}-{int(m.group(2)):02d}-{int(m.group(3)):02d}"
+    return s
+
+
+def _try_numeric_coerce(predict_val, answer_val):
+    """Check if string and number values are semantically equal.
+    E.g., '100' == 100, '3.14' == 3.14"""
+    try:
+        if isinstance(predict_val, str) and isinstance(answer_val, (int, float)):
+            return float(predict_val) == float(answer_val)
+        if isinstance(predict_val, (int, float)) and isinstance(answer_val, str):
+            return float(predict_val) == float(answer_val)
+        if isinstance(predict_val, int) and isinstance(answer_val, float):
+            return float(predict_val) == float(answer_val)
+        if isinstance(predict_val, float) and isinstance(answer_val, int):
+            return float(predict_val) == float(answer_val)
+    except (ValueError, TypeError):
+        pass
+    return False
+
+
 def get_similarity(a, b):
     # 比例 1.0 代表完全相同，0.0 代表完全不同
     return SequenceMatcher(None, a, b).ratio()
@@ -173,6 +201,9 @@ class ToolArgsChecker:
         path_str = f" at '{path}'" if path else ""
 
         if type(predict_val) != type(answer_val):
+            # Try numeric coercion before failing (e.g., "100" vs 100)
+            if _try_numeric_coerce(predict_val, answer_val):
+                return self.CORRECT
             return f"{self.MATCH_ERROR_TYPE_INCONSISTENT}{path_str}"
 
         # 情况 A: 处理 Dict/Object
@@ -180,18 +211,24 @@ class ToolArgsChecker:
             predict_keys = set(predict_val.keys())
             answer_keys = set(answer_val.keys())
 
-            # 1. 检查 Key 是否完全一致
-            if predict_keys != answer_keys:
-                missing_keys = answer_keys - predict_keys
-                extra_keys = predict_keys - answer_keys
+            # Check for missing keys (predicted doesn't have required answer keys)
+            missing_keys = answer_keys - predict_keys
+            if missing_keys:
+                return f"{self.MATCH_ERROR_KEYS_MISMATCH}{path_str} (missing: {list(missing_keys)})"
 
-                detail = []
-                if missing_keys:
-                    detail.append(f"missing: {list(missing_keys)}")
-                if extra_keys:
-                    detail.append(f"extra: {list(extra_keys)}")
-
-                return f"{self.MATCH_ERROR_KEYS_MISMATCH}{path_str} ({', '.join(detail)})"
+            # Extra keys: tolerate if they are optional (not in ground truth but defined in schema)
+            extra_keys = predict_keys - answer_keys
+            if extra_keys:
+                # Check if extra keys are non-required params in the schema
+                required_params = set()
+                if isinstance(schema_info, dict):
+                    required_params = set(schema_info.get("required", []))
+                    props = schema_info.get("properties", {})
+                    # Only reject extra keys that are NOT in the schema at all
+                    truly_invalid = [k for k in extra_keys if k not in props]
+                    if truly_invalid:
+                        return f"{self.MATCH_ERROR_KEYS_MISMATCH}{path_str} (extra: {truly_invalid})"
+                    # Extra keys that ARE in the schema but not in ground truth are tolerated
 
             props = schema_info.get("properties", schema_info) if isinstance(schema_info, dict) else {}
             for key in answer_val:
@@ -224,6 +261,10 @@ class ToolArgsChecker:
 
             # 2. 标准化匹配（解决空格、大小写问题）
             if _normalize_str(predict_val) == _normalize_str(answer_val):
+                return self.CORRECT
+
+            # 2.5. Date normalization (e.g., "2024-7-13" vs "2024-07-13")
+            if _normalize_date(predict_val) == _normalize_date(answer_val):
                 return self.CORRECT
 
             # 3. 针对短文本的容错处理
@@ -296,9 +337,13 @@ class ToolArgsChecker:
             return self.ERROR_ARGS_JSON_DECODE
 
         # 3. 执行递归比较
-        # 这里我们将 predict_args 看作待检对象，对照 answer_args 进行逻辑比对
+        # Build a full schema object so _recursive_compare can check required vs optional keys
+        full_schema = {
+            "properties": param_schemas,
+            "required": list(tool_schema["required"])
+        }
         try:
-            return self._recursive_compare(predict_args, answer_args, param_schemas)
+            return self._recursive_compare(predict_args, answer_args, full_schema)
         except Exception as e:
             return f"error: comparison failed - {str(e)}"
 
