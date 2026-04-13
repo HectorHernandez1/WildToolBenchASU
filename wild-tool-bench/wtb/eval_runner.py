@@ -25,11 +25,16 @@ def params_checker(result):
         step_data = inference_log[key]
         inference_input = step_data["inference_input"]
         inference_output = step_data["inference_output"]
-        inference_answer = step_data["inference_answer"]
 
         current_action_name_label = inference_output["current_action_name_label"]
         if current_action_name_label == "error":
             break
+
+        # inference_answer is only recorded when the step reached a candidate match.
+        # Error branches can exit without setting it — treat as an error.
+        if "inference_answer" not in step_data:
+            break
+        inference_answer = step_data["inference_answer"]
 
         # At this stage, action_name is guaranteed to be correct, so the size of candidate_answer_function_list will always be 1.
         candidate_answer_function = inference_answer["candidate_0_answer_function_list"]
