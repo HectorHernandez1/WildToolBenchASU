@@ -1,0 +1,62 @@
+{
+  "example_id": "AHF_04",
+  "category": "AHF",
+  "category_description": "Ambiguity Handling Failure - model fails to detect or resolve ambiguity in user input",
+  "subcategory": "Missing Clarification",
+  "metadata": {
+    "model": "qwen3:32b",
+    "session_id": "wild_tool_bench_30",
+    "turn_idx": 2,
+    "task_type": "Clarify",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "Add another one for me",
+  "expected_trajectory": {
+    "action_names": [
+      "ask_user_for_required_parameters",
+      "addQuote",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"tool_list\": [{\"missing_required_parameters\": [\"text\"], \"tool_name\": \"addQuote\"}]}",
+      "{\"author\": \"Linus Torvalds\", \"text\": \"Avoiding complexity reduces bugs.\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [],
+    "arguments": [],
+    "text_response": "Sure! Please provide the content of the quote, the author's name, and any tags you'd like to associate with it. I'll format it for you to add.",
+    "has_text_response": true
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "Can you add a new programming quote? The content is 'Talk is cheap. Show me the code.', the author is 'Linus Torvalds', and attach the tags 'Inspiration' and 'Creativity'."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "A new programming quote has been successfully added:\n\n- **Content**: Talk is cheap. Show me the code.\n- **Author**: Linus Torvalds\n- **Tags**: Inspiration, Creativity\n\nThank you for your contribution!"
+    },
+    {
+      "role": "user",
+      "content": "What famous quotes related to life has he said?"
+    },
+    {
+      "role": "assistant",
+      "content": "Linus Torvalds has many quotes related to life. Here are some examples:\n- **Work-life balance**\n    - \u201cA lot of people believe in working long days and doing double, triple, or even quadruple shifts. I'm not one of them. neither transmeta nor linux has ever gotten in the way of a good night's sleep. In fact, if you want to know the honest truth, I'm a firm believer in sleep.\u201d\n    - \u201cI did learn fairly early that the best and most effective way to lead is by letting people do things because they "
+    },
+    {
+      "role": "user",
+      "content": "Add another one for me"
+    }
+  ],
+  "analysis": "Task type 'Clarify' requires the model to first ask `ask_user_for_required_parameters` to clarify ambiguous reference. Instead, model gave a text response. This is a Missing Clarification pattern."
+}

@@ -1,0 +1,62 @@
+{
+  "example_id": "TDF_02",
+  "category": "TDF",
+  "category_description": "Tool Dispatch Failure - wrong tool selection or unnecessary tool invocation",
+  "subcategory": "Over-Eager Invocation",
+  "metadata": {
+    "model": "qwen3:14b",
+    "session_id": "wild_tool_bench_13",
+    "turn_idx": 3,
+    "task_type": "Chat",
+    "turn_subtype": "Coreferential Reference",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "Play these music as a playlist for me.",
+  "expected_trajectory": {
+    "action_names": [
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"answer_type\": \"chat\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "createPlaylist"
+    ],
+    "arguments": [
+      "{\"genre\":\"Easy Listening\",\"limit\":10,\"mood\":\"calm\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Here are the current rankings of the most popular songs in different music genres:\n\n### Rock\n1. The Brightest Star in the Night Sky - Escape Plan\n2. Ordinary Road - Pu Shu\n3. South Mountain South - Ma Di\n4. Existence - Wang Feng\n5. No Place to Hide - Black Panther Band\n6. Boundless Oceans, Vast Skies - Beyond\n7. Glorious Years - Beyond\n8. Do You Love Me - Zero Band\n9. Flower - Mayday\n10. Stubborn - Mayday\n11. Suddenly Missing You - Mayday\n12. No More Hesitation - Beyond\n13. Blue Lotus - Xu Wei\n1"
+    },
+    {
+      "role": "user",
+      "content": "The detailed information of the two most frequently appeared singers in light music"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Artist Information\n\n#### Richard Clayderman\n- **Biography**: Richard Clayderman is a French pianist, renowned for his popular piano music. His musical style blends classical and popular elements.\n- **Albums**:\n  - Ballade pour Adeline (1977)\n  - A Comme Amour (1978)\n  - Les Sonates (1981)\n- **Popular Songs**: Ballade pour Adeline, A Comme Amour, Mariage d'amour\n\n#### Joe Hisaishi\n- **Biography**: Joe Hisaishi is a famous Japanese composer, well-known for creating music for Hayao Miyazaki's a"
+    },
+    {
+      "role": "user",
+      "content": "Play these music as a playlist for me."
+    }
+  ],
+  "analysis": "On a 'Chat' task, model invoked tools when none were needed: ['createPlaylist']. Subcategory: Over-Eager Invocation."
+}

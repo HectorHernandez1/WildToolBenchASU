@@ -1,0 +1,66 @@
+{
+  "example_id": "TDF_05",
+  "category": "TDF",
+  "category_description": "Tool Dispatch Failure - wrong tool selection or unnecessary tool invocation",
+  "subcategory": "Wrong Tool Selection",
+  "metadata": {
+    "model": "gemma4:31b",
+    "session_id": "wild_tool_bench_65",
+    "turn_idx": 3,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "What about the candidates' situation?",
+  "expected_trajectory": {
+    "action_names": [
+      "getCandidateData",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"party\": \"Democrat\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getCandidateData",
+      "getCandidateData"
+    ],
+    "arguments": [
+      "{\"party\":\"Democrat\"}",
+      "{\"party\":\"Republican\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "Democrat"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Electoral Votes of the Democrat in California\n- The number of electoral votes of the Democrat in California is: 55."
+    },
+    {
+      "role": "user",
+      "content": "Is there any difference in the number of electoral votes between the two parties in California?"
+    },
+    {
+      "role": "assistant",
+      "content": "California is the most populous state in the United States and has 55 electoral votes in the presidential election.\n\nNormally, California tends to support the Democratic Party in the presidential election. So in the actual election, the Democratic Party often wins all 55 electoral votes in California, while the Republican Party gets zero electoral votes in this state.\n\nThere are many reasons behind this: California's economy is mainly based on technology, entertainment, service industries, etc.,"
+    },
+    {
+      "role": "user",
+      "content": "What about the candidates' situation?"
+    }
+  ],
+  "analysis": "On a 'Single-Tool' task, model selected a wrong tool. Subcategory: Wrong Tool Selection."
+}

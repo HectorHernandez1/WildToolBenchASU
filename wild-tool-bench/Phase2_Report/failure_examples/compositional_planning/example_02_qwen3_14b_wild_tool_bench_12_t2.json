@@ -1,0 +1,76 @@
+{
+  "example_id": "CPF_02",
+  "category": "CPF",
+  "category_description": "Compositional Planning Failure - multi-step task orchestration error",
+  "subcategory": "Schema Error in Sequence",
+  "metadata": {
+    "model": "qwen3:14b",
+    "session_id": "wild_tool_bench_12",
+    "turn_idx": 2,
+    "task_type": "Parallel Multi-Tool",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Download the other two as well. Then, I also want to know what has been recently released in Germany and Sweden.",
+  "expected_trajectory": {
+    "action_names": [
+      "downloadDataset",
+      "downloadDataset",
+      "getLatestDatasets",
+      "getLatestUpdates",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"datasetUrl\": \"https://data.cyprus.gov.cy/dataset/gdp-2023\", \"format\": \"json\"}",
+      "{\"datasetUrl\": \"https://data.cyprus.gov.cy/dataset/inflation-rate-2023\", \"format\": \"json\"}",
+      "{}",
+      "{}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "downloadDataset",
+      "downloadDataset",
+      "getLatestDatasets",
+      "getLatestUpdates"
+    ],
+    "arguments": [
+      "{\"datasetUrl\":\"https://data.cyprus.gov.cy/dataset/gdp-2023\",\"format\":\"json\"}",
+      "{\"datasetUrl\":\"https://data.cyprus.gov.cy/dataset/inflation-rate-2023\",\"format\":\"json\"}",
+      "{\"limit\":5}",
+      "{\"since\":\"2024-06-01\",\"updateType\":\"economic\"}"
+    ],
+    "text_response": "Here's the information you requested:\n\n### **Cyprus Datasets Downloads**\n1. **GDP 2023 Data** (Sample):\n   - 2023Q1: 20 billion euros\n   - 2023Q2: 21 billion euros\n   - 2023Q3: 22 billion euros\n   - [Download Link](https://data.cyprus.gov.cy/dataset/gdp-2023)\n\n2. **Inflation Rate 2023 Data** (Sample):\n   - January 2023: 2.5%\n   - February 2023: 2.6%\n   - March 2023: 2.7%\n   - [Download Link](https://data.cyprus.gov.cy/dataset/inflation-rate-2023)\n\n---\n\n### **Latest Releases in Germany**\n1. [Germ",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Here are some open data sets about the economy of Cyprus in 2023:\n\n1. **2023 GDP Data of Cyprus**\n   - Description: Contains quarterly GDP data of Cyprus in 2023.\n   - Format: JSON\n   - [Dataset Link](https://data.cyprus.gov.cy/dataset/gdp-2023)\n\n2. **2023 Unemployment Rate Data of Cyprus**\n   - Description: Monthly unemployment rate statistics in 2023.\n   - Format: JSON\n   - [Dataset Link](https://data.cyprus.gov.cy/dataset/unemployment-rate-2023)\n\n3. **2023 Inflation Rate Data of Cyprus**\n   -"
+    },
+    {
+      "role": "user",
+      "content": "Download the second dataset"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "The dataset has been successfully downloaded. Here are some samples of the unemployment rate data in Cyprus in 2023:\n\n- **January 2023**: The unemployment rate is 7.5%\n- **February 2023**: The unemployment rate is 7.4%\n- **March 2023**: The unemployment rate is 7.3%\n- **April 2023**: The unemployment rate is 7.2%\n- **May 2023**: The unemployment rate is 7.1%\n\nYou can download the full dataset through [this link](https://data.cyprus.gov.cy/dataset/unemployment-rate-2023)."
+    },
+    {
+      "role": "user",
+      "content": "Download the other two as well. Then, I also want to know what has been recently released in Germany and Sweden."
+    }
+  ],
+  "analysis": "Multi-tool task 'Parallel Multi-Tool' expected 5 actions: ['downloadDataset', 'downloadDataset', 'getLatestDatasets', 'getLatestUpdates', 'prepare_to_answer']. Model produced 4 tool calls: ['downloadDataset', 'downloadDataset', 'getLatestDatasets', 'getLatestUpdates']. Subcategory: Schema Error in Sequence."
+}

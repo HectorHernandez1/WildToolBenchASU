@@ -1,0 +1,64 @@
+{
+  "example_id": "CGF_01",
+  "category": "CGF",
+  "category_description": "Contextual Grounding Failure - model fails to ground tool args in prior turn context",
+  "subcategory": "Coreference \u2192 Wrong Args",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_2",
+    "turn_idx": 3,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Coreferential Reference",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Please help me update this transaction record. Change the amount to 250 yuan and keep the other information unchanged.",
+  "expected_trajectory": {
+    "action_names": [
+      "updateTransaction",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"account_id\": \"12345\", \"amount\": \"250\", \"date\": \"2024-08-01\", \"transaction_id\": \"TX20240801153428765432001\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "updateTransaction"
+    ],
+    "arguments": [
+      "{\"account_id\":\"12345\",\"date\":\"2024-08-01\",\"amount\":\"250\",\"category_name\":\"Entertainment Expenses\",\"transaction_id\":\"TX20240801153428765432001\"}"
+    ],
+    "text_response": "### Transaction Record Updated Successfully\nThe transaction record has been updated:\n- **Transaction ID**: TX20240801153428765432001\n- **Amount**: Modified to 250 yuan\n- **Date**: 2024-08-01\n- **Category**: Entertainment Expenses (unchanged)\n- **Other Information**: Remains unchanged as requested",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Transaction Record Successfully Created\nA new transaction record has been successfully created:\n- **Transaction ID**: TX20240801153428765432001\n- **Amount**: 200 yuan\n- **Date**: 2024-08-01\n- **Category**: Entertainment Expense"
+    },
+    {
+      "role": "user",
+      "content": "Then help me synchronize again."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Transaction records have been synchronized successfully. The newly created transaction record with an amount of 200 yuan, a date of 2024-08-01, and a category of 'Entertainment Expenses' has been successfully synchronized to all relevant databases and associated systems. All terminal devices can obtain the latest data in real time."
+    },
+    {
+      "role": "user",
+      "content": "Please help me update this transaction record. Change the amount to 250 yuan and keep the other information unchanged."
+    }
+  ],
+  "analysis": "Turn subtype 'Coreferential Reference' requires the model to resolve references using prior turn context. The model produced an error of type 'Coreference \u2192 Wrong Args' because it failed to bind the reference to the correct entity from earlier turns."
+}

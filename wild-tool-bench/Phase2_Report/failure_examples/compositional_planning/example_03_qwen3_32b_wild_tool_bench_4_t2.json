@@ -1,0 +1,68 @@
+{
+  "example_id": "CPF_03",
+  "category": "CPF",
+  "category_description": "Compositional Planning Failure - multi-step task orchestration error",
+  "subcategory": "Schema Error in Sequence",
+  "metadata": {
+    "model": "qwen3:32b",
+    "session_id": "wild_tool_bench_4",
+    "turn_idx": 2,
+    "task_type": "Parallel Multi-Tool",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Okay, I've been researching users these days. I need an analysis report. Also, I want to modify the existing screen to SimSun font and color #555602.",
+  "expected_trajectory": {
+    "action_names": [
+      "userActivityReport",
+      "customizeLoginScreen",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"appID\": \"PRG-2023-09-15-XYZ123\"}",
+      "{\"appID\": \"PRG-2023-09-15-XYZ123\", \"theme\": {\"fontFamily\": \"SimSun\", \"primaryColor\": \"#555602\"}}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "userActivityReport",
+      "customizeLoginScreen"
+    ],
+    "arguments": [
+      "{\"appID\":\"PRG-2023-09-15-XYZ123\",\"metrics\":[\"loginAttempts\",\"successfulLogins\",\"failedLogins\"]}",
+      "{\"theme\":{\"fontFamily\":\"SimSun\",\"primaryColor\":\"#555602\"},\"appID\":\"PRG-2023-09-15-XYZ123\"}"
+    ],
+    "text_response": "### User Activity Report & Login Screen Update  \n\n#### **User Activity Report (App ID: PRG-2023-09-15-XYZ123)**  \n- **Date Range**: June 11, 2024 \u2013 July 11, 2024  \n- **Metrics**:  \n  - **Total Login Attempts**: 150  \n  - **Successful Logins**: 120  \n  - **Failed Logins**: 30  \n\n#### **Login Screen Customization**  \n- **App ID**: PRG-2023-09-15-XYZ123  \n- **Updates Applied**:  \n  - **Font**: SimSun  \n  - **Primary Color**: `#55602`  \n\nBoth requests have been successfully completed. Let me know if",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Login Successful\n\nYou have successfully logged in using biometric data and device ID. Here is your login information:\n\n- **User ID**: user-12345\n- **Session Token**: abc123xyz456\n\nPlease keep your session token safe to ensure the security of your account."
+    },
+    {
+      "role": "user",
+      "content": "ok, then proceed with email verification"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Email Verification\n\nA one-time login link has been successfully sent to your email `882864252@163.com`. Please use the link to log in within 10 minutes."
+    },
+    {
+      "role": "user",
+      "content": "Okay, I've been researching users these days. I need an analysis report. Also, I want to modify the existing screen to SimSun font and color #555602."
+    }
+  ],
+  "analysis": "Multi-tool task 'Parallel Multi-Tool' expected 3 actions: ['userActivityReport', 'customizeLoginScreen', 'prepare_to_answer']. Model produced 2 tool calls: ['userActivityReport', 'customizeLoginScreen']. Subcategory: Schema Error in Sequence."
+}

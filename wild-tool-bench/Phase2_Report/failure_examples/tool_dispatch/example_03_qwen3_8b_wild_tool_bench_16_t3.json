@@ -1,0 +1,60 @@
+{
+  "example_id": "TDF_03",
+  "category": "TDF",
+  "category_description": "Tool Dispatch Failure - wrong tool selection or unnecessary tool invocation",
+  "subcategory": "Wrong Tool Selection",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_16",
+    "turn_idx": 3,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "gpt4o",
+  "expected_trajectory": {
+    "action_names": [
+      "streamTweets",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"locations\": [-73.9857, 40.7484], \"track\": [\"gpt4o\"]}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [],
+    "arguments": [],
+    "text_response": "I currently don't have access to real-time data or specific information about \"GPT-4o\" (which may refer to a hypothetical or future version of the GPT series). However, I can help you search for tweets about GPT-4o in real-time using the `streamTweets` tool if you'd like. Let me know how you'd like to proceed!",
+    "has_text_response": true
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "I'll think about it again."
+    },
+    {
+      "role": "assistant",
+      "content": "Okay, let me know when you've made up your mind."
+    },
+    {
+      "role": "user",
+      "content": "openai and claude"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "In the real-time tweets near New York City, there are multiple mentions of OpenAI and Claude. For example, a user mentioned that OpenAI's latest release has drawn wide attention; another tweet said that Claude performs outstandingly in natural language processing tasks. In addition, someone also mentioned that today in New York City, the discussions about OpenAI and Claude are very lively."
+    },
+    {
+      "role": "user",
+      "content": "gpt4o"
+    }
+  ],
+  "analysis": "On a 'Single-Tool' task, model selected a wrong tool. Subcategory: Wrong Tool Selection."
+}

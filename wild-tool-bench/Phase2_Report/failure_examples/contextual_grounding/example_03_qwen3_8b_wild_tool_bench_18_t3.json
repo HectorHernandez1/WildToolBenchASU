@@ -1,0 +1,66 @@
+{
+  "example_id": "CGF_03",
+  "category": "CGF",
+  "category_description": "Contextual Grounding Failure - model fails to ground tool args in prior turn context",
+  "subcategory": "Long-Range \u2192 Wrong Args",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_18",
+    "turn_idx": 3,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Fourth from the last and then add 28 days.",
+  "expected_trajectory": {
+    "action_names": [
+      "modifyShortLinks",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"expirationDate\": \"2025-03-14\", \"url\": \"https://bit.ly/def456\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "modifyShortLinks",
+      "modifyShortLinks"
+    ],
+    "arguments": [
+      "{\"expirationDate\":\"2024-12-29\",\"url\":\"https://goo.gl/ghi789\"}",
+      "{\"url\":\"https://goo.gl/ghi789\",\"expirationDate\":\"2024-12-29\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "The expiration times of all short links have been successfully updated:\n\n1. Short link: [https://tinyurl.com/abc123](https://tinyurl.com/abc123)\n   New expiration time: 2025-01-02\n\n2. Short link: [https://bit.ly/def456](https://bit.ly/def456)\n   New expiration time: 2025-01-14\n\n3. Short link: [https://goo.gl/ghi789](https://goo.gl/ghi789)\n   New expiration time: 2024-12-01\n\n4. Short link: [https://tiny.cc/jkl012](https://tiny.cc/jkl012)\n   New expiration time: 2025-02-21\n\n5. Short link: [https:/"
+    },
+    {
+      "role": "user",
+      "content": "Add 31 more days for the second one."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "The expiration time of the short link [https://bit.ly/def456](https://bit.ly/def456) has been successfully extended to 2025-02-14."
+    },
+    {
+      "role": "user",
+      "content": "Fourth from the last and then add 28 days."
+    }
+  ],
+  "analysis": "Turn subtype 'Long-Range Dependency' requires the model to resolve references using prior turn context. The model produced an error of type 'Long-Range \u2192 Wrong Args' because it failed to bind the reference to the correct entity from earlier turns."
+}

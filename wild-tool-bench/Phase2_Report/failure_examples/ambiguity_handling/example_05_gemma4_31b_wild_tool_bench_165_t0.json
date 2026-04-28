@@ -1,0 +1,46 @@
+{
+  "example_id": "AHF_05",
+  "category": "AHF",
+  "category_description": "Ambiguity Handling Failure - model fails to detect or resolve ambiguity in user input",
+  "subcategory": "Premature Tool Execution",
+  "metadata": {
+    "model": "gemma4:31b",
+    "session_id": "wild_tool_bench_165",
+    "turn_idx": 0,
+    "task_type": "Clarify",
+    "turn_subtype": "First Turn",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "When preparing the market analysis report, I found that I need the detailed records of specific discussions in the 'Financial Communication' chat room, including the speeches and interactions of all members. However, I only have their nicknames.",
+  "expected_trajectory": {
+    "action_names": [
+      "ask_user_for_required_parameters",
+      "getUserActivity",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"tool_list\": [{\"missing_required_parameters\": [\"user_id\"], \"tool_name\": \"getUserActivity\"}]}",
+      "{\"room_id\": \"finance_room_123\", \"user_id\": \"user_001,user_002,user_003 \"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getChatRooms"
+    ],
+    "arguments": [
+      "{\"user_id\":\"user_1\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "When preparing the market analysis report, I found that I need the detailed records of specific discussions in the 'Financial Communication' chat room, including the speeches and interactions of all members. However, I only have their nicknames."
+    }
+  ],
+  "analysis": "Task type 'Clarify' requires the model to first ask `ask_user_for_required_parameters` to clarify ambiguous reference. Instead, model called tool ['getChatRooms'] directly. This is a Premature Tool Execution pattern."
+}

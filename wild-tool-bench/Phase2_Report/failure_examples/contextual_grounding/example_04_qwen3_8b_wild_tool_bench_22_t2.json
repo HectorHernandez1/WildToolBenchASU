@@ -1,0 +1,60 @@
+{
+  "example_id": "CGF_04",
+  "category": "CGF",
+  "category_description": "Contextual Grounding Failure - model fails to ground tool args in prior turn context",
+  "subcategory": "Long-Range \u2192 Wrong Tool",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_22",
+    "turn_idx": 2,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "Was the third festival on the same day last year?",
+  "expected_trajectory": {
+    "action_names": [
+      "searchLiturgicalEvents",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"date\": \"2023-06-09\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [],
+    "arguments": [],
+    "text_response": "The third festival listed in the 2024 calendar is **Pentecost** (June 9, 2024). To determine if it occurred on the same day in 2023, we need to calculate Pentecost's date for that year:\n\n- **2023 Pentecost**:  \n  - Easter Sunday in 2023 was **April 16**.  \n  - Adding 50 days (the duration from Easter to Pentecost) lands Pentecost on **June 6, 2023**.  \n\nThus, **Pentecost in 2023 was on June 6**, while **in 2024 it is on June 9**. The dates differ by **3 days** due to the variable nature of Easte",
+    "has_text_response": true
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "According to the Protestant liturgical calendar for 2024, the following is information about upcoming important religious festivals:\n\n- **Easter**\n  - Date: 2024-04-21\n  - Description: Commemorate the resurrection of Jesus Christ from the dead, one of the most important festivals in Christianity.\n\n- **Ascension Day**\n  - Date: 2024-05-30\n  - Description: A festival commemorating the ascension of Jesus Christ into heaven on the fortieth day after his resurrection.\n\n- **Pentecost**\n  - Date: 2024-"
+    },
+    {
+      "role": "user",
+      "content": "Please specify these festivals in detail"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Easter\n\n- **Background**: Easter is one of the most important festivals in Christianity, commemorating the resurrection of Jesus Christ from the dead. According to the New Testament, Jesus rose on the third day after being crucified, and this event symbolizes the victory over death and sin.\n- **Customs**: Attend Easter services, Easter eggs and rabbits symbolize new life, Family gatherings.\n\n### Ascension Day\n\n- **Background**: Ascension Day commemorates the event of Jesus Christ ascending i"
+    },
+    {
+      "role": "user",
+      "content": "Was the third festival on the same day last year?"
+    }
+  ],
+  "analysis": "Turn subtype 'Long-Range Dependency' requires the model to resolve references using prior turn context. The model produced an error of type 'Long-Range \u2192 Wrong Tool' because it failed to bind the reference to the correct entity from earlier turns."
+}

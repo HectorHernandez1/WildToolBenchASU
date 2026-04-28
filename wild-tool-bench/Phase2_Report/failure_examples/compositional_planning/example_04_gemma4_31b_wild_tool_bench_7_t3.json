@@ -1,0 +1,84 @@
+{
+  "example_id": "CPF_04",
+  "category": "CPF",
+  "category_description": "Compositional Planning Failure - multi-step task orchestration error",
+  "subcategory": "Schema Error in Sequence",
+  "metadata": {
+    "model": "gemma4:31b",
+    "session_id": "wild_tool_bench_7",
+    "turn_idx": 3,
+    "task_type": "Parallel Multi-Tool",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "I also want to know the information about an even number of provinces in the results?",
+  "expected_trajectory": {
+    "action_names": [
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"countryCode\": \"CA\", \"divisionCode\": \"BC\"}",
+      "{\"countryCode\": \"CA\", \"divisionCode\": \"MB\"}",
+      "{\"countryCode\": \"CA\", \"divisionCode\": \"NL\"}",
+      "{\"countryCode\": \"CA\", \"divisionCode\": \"PE\"}",
+      "{\"countryCode\": \"CA\", \"divisionCode\": \"NT\"}",
+      "{\"countryCode\": \"CA\", \"divisionCode\": \"YT\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails",
+      "getDivisionDetails"
+    ],
+    "arguments": [
+      "{\"countryCode\":\"CA\",\"divisionCode\":\"QC\"}",
+      "{\"countryCode\":\"CA\",\"divisionCode\":\"AB\"}",
+      "{\"countryCode\":\"CA\",\"divisionCode\":\"NB\"}",
+      "{\"countryCode\":\"CA\",\"divisionCode\":\"NS\"}",
+      "{\"countryCode\":\"CA\",\"divisionCode\":\"SK\"}",
+      "{\"countryCode\":\"CA\",\"divisionCode\":\"NU\"}"
+    ],
+    "text_response": "Based on the results, here is the detailed information for six (an even number) of the provinces and territories:\n\n**1. British Columbia**\n- **Population**: 5,147,712\n- **Area**: 944,735 km\u00b2\n- **Capital**: Victoria\n- **Largest City**: Vancouver\n- **Official Language**: English\n- **Description**: The westernmost province of Canada, known for its natural beauty and diverse cultures.\n\n**2. Manitoba**\n- **Population**: 1,377,517\n- **Area**: 647,797 km\u00b2\n- **Capital**: Winnipeg\n- **Largest City**: Win",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Other provinces in Canada include:\n\n- Quebec (Code: QC)\n- British Columbia (Code: BC)\n- Alberta (Code: AB)\n- Manitoba (Code: MB)\n- New Brunswick (Code: NB)\n- Newfoundland and Labrador (Code: NL)\n- Nova Scotia (Code: NS)\n- Prince Edward Island (Code: PE)\n- Saskatchewan (Code: SK)\n- Northwest Territories (Code: NT)\n- Nunavut (Code: NU)\n- Yukon (Code: YT)"
+    },
+    {
+      "role": "user",
+      "content": "Tell me the detailed information of the third last one?"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "The Northwest Territories of Canada is an administrative division located in the northern part of Canada. Here are the detailed information:\n\n- **Name**: Northwest Territories\n- **Capital**: Yellowknife\n- **Area**: 1,346,106 square kilometers\n- **Population**: Approximately 45,000 people\n- **Official Languages**: English, French\n- **Time Zone**: UTC-7\n- **Major Cities**: Yellowknife, Inuvik, Hay River\n- **Economy**:\n  - **Main Industries**: Mining, Tourism, Fisheries\n  - **GDP**: Approximately 4"
+    },
+    {
+      "role": "user",
+      "content": "I also want to know the information about an even number of provinces in the results?"
+    }
+  ],
+  "analysis": "Multi-tool task 'Parallel Multi-Tool' expected 7 actions: ['getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'prepare_to_answer']. Model produced 6 tool calls: ['getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails', 'getDivisionDetails']. Subcategory: Schema Error in Sequence."
+}

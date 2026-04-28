@@ -1,0 +1,72 @@
+{
+  "example_id": "CPF_01",
+  "category": "CPF",
+  "category_description": "Compositional Planning Failure - multi-step task orchestration error",
+  "subcategory": "Schema Error in Sequence",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_0",
+    "turn_idx": 2,
+    "task_type": "Mixed Multi-Tool",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Check the air quality as well. If it's good, then check what special performances are on those two days.",
+  "expected_trajectory": {
+    "action_names": [
+      "getCityAQIForecast",
+      "getCityShow",
+      "getShowDetail",
+      "getShowDetail",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"city\": \"Las Vegas\", \"endDate\": \"2024-07-14\", \"startDate\": \"2024-07-13\"}",
+      "{\"city\": \"LasVegas\", \"endDate\": \"2024-07-14\", \"startDate\": \"2024-07-13\"}",
+      "{\"activity_id\": \"show123\"}",
+      "{\"activity_id\": \"show456\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getCityAQIForecast",
+      "getCityShow"
+    ],
+    "arguments": [
+      "{\"city\":\"Las Vegas\",\"endDate\":\"2024-07-14\",\"startDate\":\"2024-07-13\",\"format\":\"JSON\"}",
+      "{\"city\":\"Las Vegas\",\"endDate\":\"2024-07-14\",\"startDate\":\"2024-07-13\"}"
+    ],
+    "text_response": "### Las Vegas Air Quality & Weekend Events\n\n**Air Quality (AQI Forecast):**  \n- **July 13, 2024**: AQI 45 (Good)  \n- **July 14, 2024**: AQI 50 (Good)  \nPerfect air quality for outdoor activities!  \n\n---\n\n**Special Performances This Weekend:**  \n1. **July 13, 2024**  \n   - \ud83c\udfad **Cirque du Soleil**  \n     *Experience acrobatic artistry under the sun!*  \n\n2. **July 14, 2024**  \n   - \ud83e\ude84 **David Copperfield Magic Show**  \n     *A mesmerizing journey into the world of illusions!*  \n\n\ud83d\udc49 Use `getShowDetail`",
+    "has_text_response": true
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Weekend Weather Forecast for Chicago\n\n- **July 13, 2024**\n  - Weather: Light rain\n  - Temperature: High 25\u00b0C, Low 18\u00b0C\n  - Humidity: 80%\n\n- **July 14, 2024**\n  - Weather: Moderate rain\n  - Temperature: High 23\u00b0C, Low 17\u00b0C\n  - Humidity: 85%\n\nPlease arrange your travel plans reasonably according to the weather conditions!"
+    },
+    {
+      "role": "user",
+      "content": "It doesn't look so good. Please help me check Las Vegas again?"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "On July 13, 2024, the weather in Las Vegas was sunny, with a maximum temperature of 30\u00b0C and a minimum temperature of 20\u00b0C. On July 14, 2024, the weather was cloudy, with a maximum temperature of 28\u00b0C and a minimum temperature of 18\u00b0C."
+    },
+    {
+      "role": "user",
+      "content": "Check the air quality as well. If it's good, then check what special performances are on those two days."
+    }
+  ],
+  "analysis": "Multi-tool task 'Mixed Multi-Tool' expected 5 actions: ['getCityAQIForecast', 'getCityShow', 'getShowDetail', 'getShowDetail', 'prepare_to_answer']. Model produced 2 tool calls: ['getCityAQIForecast', 'getCityShow']. Subcategory: Schema Error in Sequence."
+}

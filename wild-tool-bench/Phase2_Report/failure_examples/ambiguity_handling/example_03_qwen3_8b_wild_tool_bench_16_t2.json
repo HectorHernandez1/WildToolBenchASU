@@ -1,0 +1,64 @@
+{
+  "example_id": "AHF_03",
+  "category": "AHF",
+  "category_description": "Ambiguity Handling Failure - model fails to detect or resolve ambiguity in user input",
+  "subcategory": "Missing Clarification",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_16",
+    "turn_idx": 2,
+    "task_type": "Clarify",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "I also want to know if there is any mention of other content",
+  "expected_trajectory": {
+    "action_names": [
+      "ask_user_for_required_parameters",
+      "ask_user_for_required_parameters",
+      "streamTweets",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"tool_list\": [{\"missing_required_parameters\": [\"track\"], \"tool_name\": \"streamTweets\"}]}",
+      "{\"tool_list\": [{\"missing_required_parameters\": [\"track\"], \"tool_name\": \"streamTweets\"}]}",
+      "{\"locations\": [-73.9857, 40.7484], \"track\": [\"openai\", \"claude\"]}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [],
+    "arguments": [],
+    "text_response": "Based on the real-time streamed tweets near New York City, **all mentions are weather-related**. The tweets retrieved specifically focus on weather conditions (sunny, thunderstorms, cold weather) and related advice. There are no other topics or content mentioned in the streamed data. \n\nIf you'd like to explore other types of content, you could adjust the tracking keywords (e.g., add hashtags like #Travel, #Events, or #Food). Let me know if you'd like to refine the search!",
+    "has_text_response": true
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "I want to know if there are any mentions of 'weather' in the real-time streamed tweets near New York City (longitude: -73.9857, latitude: 40.7484)."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Among the real-time tweets near New York City, there are multiple mentions of the weather. For example, a user mentioned that the weather in New York is sunny today and perfect for going out for a walk; another tweet reminded that there may be thunderstorms tonight and advised to bring an umbrella when going out. In addition, someone also mentioned that the weather in New York is a bit cold and advised to wear more clothes."
+    },
+    {
+      "role": "user",
+      "content": "Got it. Then where is recommended to go for fun in this weather?"
+    },
+    {
+      "role": "assistant",
+      "content": "Combining three weather conditions: sunny, thunderstorm, and a bit cold, you can choose the following three tourist destinations:\n\n### Brooklyn Bridge\n- **Sunny**: Under the sunshine, the architectural details of the Brooklyn Bridge are clearly visible, and the steel structure emits a metallic luster. You can walk or bike across the bridge, enjoy the magnificent views of the Manhattan skyline and the East River to your heart's content. Taking pictures on the bridge is very photogenic, and there "
+    },
+    {
+      "role": "user",
+      "content": "I also want to know if there is any mention of other content"
+    }
+  ],
+  "analysis": "Task type 'Clarify' requires the model to first ask `ask_user_for_required_parameters` to clarify ambiguous reference. Instead, model gave a text response. This is a Missing Clarification pattern."
+}

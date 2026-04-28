@@ -1,0 +1,95 @@
+{
+  "qwen3:8b": {
+    "AFF": {
+      "Other Argument Error": 52
+    },
+    "CPF": {
+      "Schema Error in Sequence": 124,
+      "Wrong Tool in Sequence": 90
+    },
+    "TDF": {
+      "Over-Eager Invocation": 33,
+      "Wrong Tool Selection": 25
+    },
+    "AHF": {
+      "Premature Tool Execution": 163,
+      "Missing Clarification": 34
+    },
+    "CGF": {
+      "Coreference \u2192 Wrong Args": 30,
+      "Long-Range \u2192 Wrong Args": 26,
+      "Long-Range \u2192 Wrong Tool": 17,
+      "Coreference \u2192 Wrong Tool": 12
+    }
+  },
+  "qwen3:14b": {
+    "AFF": {
+      "Other Argument Error": 49
+    },
+    "CPF": {
+      "Wrong Tool in Sequence": 70,
+      "Schema Error in Sequence": 129
+    },
+    "AHF": {
+      "Missing Clarification": 39,
+      "Premature Tool Execution": 146
+    },
+    "CGF": {
+      "Coreference \u2192 Wrong Args": 29,
+      "Long-Range \u2192 Wrong Args": 23,
+      "Long-Range \u2192 Wrong Tool": 20,
+      "Coreference \u2192 Wrong Tool": 11
+    },
+    "TDF": {
+      "Wrong Tool Selection": 19,
+      "Over-Eager Invocation": 30
+    }
+  },
+  "qwen3:32b": {
+    "CPF": {
+      "Wrong Tool in Sequence": 80,
+      "Schema Error in Sequence": 120
+    },
+    "AFF": {
+      "Other Argument Error": 41
+    },
+    "TDF": {
+      "Over-Eager Invocation": 55,
+      "Wrong Tool Selection": 21
+    },
+    "AHF": {
+      "Premature Tool Execution": 150,
+      "Missing Clarification": 25
+    },
+    "CGF": {
+      "Coreference \u2192 Wrong Args": 28,
+      "Long-Range \u2192 Wrong Args": 27,
+      "Long-Range \u2192 Wrong Tool": 13,
+      "Coreference \u2192 Wrong Tool": 8
+    }
+  },
+  "gemma4:31b": {
+    "CPF": {
+      "Wrong Tool in Sequence": 66,
+      "Schema Error in Sequence": 92
+    },
+    "AFF": {
+      "Other Argument Error": 32,
+      "Format Mismatch": 1
+    },
+    "AHF": {
+      "Premature Tool Execution": 136,
+      "Missing Clarification": 24
+    },
+    "TDF": {
+      "Wrong Tool Selection": 18,
+      "Over-Eager Invocation": 50
+    },
+    "CGF": {
+      "Coreference \u2192 Wrong Args": 29,
+      "Long-Range \u2192 Wrong Args": 23,
+      "Long-Range \u2192 Wrong Tool": 11,
+      "Coreference \u2192 Wrong Tool": 8
+    }
+  }
+}

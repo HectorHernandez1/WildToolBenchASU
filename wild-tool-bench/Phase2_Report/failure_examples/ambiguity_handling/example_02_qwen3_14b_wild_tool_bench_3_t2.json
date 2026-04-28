@@ -1,0 +1,70 @@
+{
+  "example_id": "AHF_02",
+  "category": "AHF",
+  "category_description": "Ambiguity Handling Failure - model fails to detect or resolve ambiguity in user input",
+  "subcategory": "Premature Tool Execution",
+  "metadata": {
+    "model": "qwen3:14b",
+    "session_id": "wild_tool_bench_3",
+    "turn_idx": 2,
+    "task_type": "Clarify",
+    "turn_subtype": "Coreferential Reference",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "I have a visitor who is from one of the above IP addresses. I want to know where he is from.",
+  "expected_trajectory": {
+    "action_names": [
+      "ask_user_for_required_parameters",
+      "getLocationByIP",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"tool_list\": [{\"missing_required_parameters\": [\"ip\"], \"tool_name\": \"getLocationByIP\"}]}",
+      "{\"ip\": \"125.532.55.09\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getLocationByIP",
+      "getLocationByIP",
+      "getLocationByIP"
+    ],
+    "arguments": [
+      "{\"ip\":\"123.456.78.90\"}",
+      "{\"ip\":\"125.532.55.09\"}",
+      "{\"ip\":\"228.121.22.88\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Detailed IP Address Information\n\n- **IP Address**: 123.456.78.90\n- **Time Zone**: UTC+8\n- **Currency**: CNY\n- **Population**: 1.4 billion\n\nThe above is the detailed location information about this IP address."
+    },
+    {
+      "role": "user",
+      "content": "125.532.55.09 Time Zone, Currency 228.121.22.88 Currency, Population "
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Detailed IP Address Information\n\n- **IP Address**: 125.532.55.09\n  - **Time Zone**: UTC+9\n  - **Currency**: JPY\n\n- **IP Address**: 228.121.22.88\n  - **Currency**: USD\n  - **Population**: 330 million\n\nThe above is the detailed location information about these IP addresses."
+    },
+    {
+      "role": "user",
+      "content": "I have a visitor who is from one of the above IP addresses. I want to know where he is from."
+    }
+  ],
+  "analysis": "Task type 'Clarify' requires the model to first ask `ask_user_for_required_parameters` to clarify ambiguous reference. Instead, model called tool ['getLocationByIP', 'getLocationByIP', 'getLocationByIP'] directly. This is a Premature Tool Execution pattern."
+}

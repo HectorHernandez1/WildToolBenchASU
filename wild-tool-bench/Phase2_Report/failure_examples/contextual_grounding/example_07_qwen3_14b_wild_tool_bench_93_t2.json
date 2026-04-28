@@ -1,0 +1,64 @@
+{
+  "example_id": "CGF_07",
+  "category": "CGF",
+  "category_description": "Contextual Grounding Failure - model fails to ground tool args in prior turn context",
+  "subcategory": "Coreference \u2192 Wrong Tool",
+  "metadata": {
+    "model": "qwen3:14b",
+    "session_id": "wild_tool_bench_93",
+    "turn_idx": 2,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Coreferential Reference",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "Find out the location information of the fourth area.",
+  "expected_trajectory": {
+    "action_names": [
+      "searchLocation",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"locationType\": \"district\", \"query\": \"Rutsiro District\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getLocationDetails"
+    ],
+    "arguments": [
+      "{\"locationId\":4}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "I want to know some information about certain regions."
+    },
+    {
+      "role": "assistant",
+      "content": "What is the unique identifier (provinceId) of the province you want to know about? Please provide this information and I can help you get the list of districts in that province."
+    },
+    {
+      "role": "user",
+      "content": "For the province mentioned above."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Here is some information about the districts in the Western Province of Rwanda (Province ID: 3):\n\n1. **Rusizi District**\n   - **Description**: Rusizi District is located in the Western Province of Rwanda and has rich natural landscapes and cultural heritage.\n\n2. **Nyamasheke District**\n   - **Description**: Nyamasheke District is known for its lake and forest landscapes and is a popular destination for ecotourism.\n\n3. **Karongi District**\n   - **Description**: Karongi District is famous for its "
+    },
+    {
+      "role": "user",
+      "content": "Find out the location information of the fourth area."
+    }
+  ],
+  "analysis": "Turn subtype 'Coreferential Reference' requires the model to resolve references using prior turn context. The model produced an error of type 'Coreference \u2192 Wrong Tool' because it failed to bind the reference to the correct entity from earlier turns."
+}

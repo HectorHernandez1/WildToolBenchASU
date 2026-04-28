@@ -1,0 +1,44 @@
+{
+  "example_id": "AFF_05",
+  "category": "AFF",
+  "category_description": "Argument Fidelity Failure - tool name correct but argument values wrong",
+  "subcategory": "Other Argument Error",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_38",
+    "turn_idx": 0,
+    "task_type": "Single-Tool",
+    "turn_subtype": "First Turn",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Can you retrieve some articles on climate change for me? Preferably written in French, and limit the number to less than 5?",
+  "expected_trajectory": {
+    "action_names": [
+      "searchArticles",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"keywords\": [\"Climate change\"], \"language\": \"fr\", \"limit\": 5}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "searchArticles"
+    ],
+    "arguments": [
+      "{\"keywords\":[\"climate change\"],\"language\":\"fr\",\"limit\":4}"
+    ],
+    "text_response": "Here are some French articles on climate change (limited to 4, but 5 were found):\n\n1. **Title:** Les impacts du changement climatique sur la biodiversit\u00e9  \n   **Author:** Jean Dupont (2024-04-20)  \n   **Summary:** Explores how climate change affects global biodiversity, focusing on vulnerable ecosystems.  \n   [Read more](https://example.com/article1)\n\n2. **Title:** Changement climatique : d\u00e9fis et opportunit\u00e9s pour l'agriculture  \n   **Author:** Marie Curie (2024-04-18)  \n   **Summary:** Discuss",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "Can you retrieve some articles on climate change for me? Preferably written in French, and limit the number to less than 5?"
+    }
+  ],
+  "analysis": "Model selected the correct tool but produced argument values that failed validation: '(no reason recorded)'. Subcategory: Other Argument Error."
+}

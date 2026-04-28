@@ -1,0 +1,50 @@
+{
+  "example_id": "AFF_04",
+  "category": "AFF",
+  "category_description": "Argument Fidelity Failure - tool name correct but argument values wrong",
+  "subcategory": "Format Mismatch",
+  "metadata": {
+    "model": "gemma4:31b",
+    "session_id": "wild_tool_bench_22",
+    "turn_idx": 0,
+    "task_type": "Single-Tool",
+    "turn_subtype": "First Turn",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "As a Protestant pastor, I need to prepare sermons for the upcoming religious festivals. Can you provide some information?",
+  "expected_trajectory": {
+    "action_names": [
+      "getCurrentLiturgicalCalendar",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"highlightEvents\": true, \"year\": 2024}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getCurrentLiturgicalCalendar",
+      "searchLiturgicalEventsDetails",
+      "searchLiturgicalEventsDetails",
+      "searchLiturgicalEventsDetails"
+    ],
+    "arguments": [
+      "{\"highlightEvents\":true}",
+      "{\"name\":\"Easter\"}",
+      "{\"name\":\"Ascension Day\"}",
+      "{\"name\":\"Pentecost\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "As a Protestant pastor, I need to prepare sermons for the upcoming religious festivals. Can you provide some information?"
+    }
+  ],
+  "analysis": "Model selected the correct tool but produced argument values that failed validation: 'action name not in candidate_answer_function_list'. Subcategory: Format Mismatch."
+}

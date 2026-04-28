@@ -1,0 +1,64 @@
+{
+  "example_id": "AFF_03",
+  "category": "AFF",
+  "category_description": "Argument Fidelity Failure - tool name correct but argument values wrong",
+  "subcategory": "Other Argument Error",
+  "metadata": {
+    "model": "gemma4:31b",
+    "session_id": "wild_tool_bench_5",
+    "turn_idx": 2,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "It seems the weather is bad. Will there be any delays?",
+  "expected_trajectory": {
+    "action_names": [
+      "getAirportDelays",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"airportCode\": \"PKX\", \"delayType\": \"weather\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getAirportDelays"
+    ],
+    "arguments": [
+      "{\"airportCode\":\"PKX\"}"
+    ],
+    "text_response": "Yes, there are currently some flight delays at Daxing Airport due to weather reasons. Here are a few examples:\n\n*   **Flight CA1234**: Scheduled for 18:30, now estimated to depart at 20:00.\n*   **Flight MU5678**: Scheduled for 19:00, now estimated to depart at 21:15.\n*   **Flight CZ9101**: Scheduled for 19:45, now estimated to depart at 22:00.\n\nIf you have a specific flight, I recommend checking with your airline for the most up-to-date information.",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "The weather in Beijing on May 26, 2024 is: rain in some areas, cloudy to sunny, south wind level 3-4, maximum temperature 29\u2103, minimum temperature 15\u2103."
+    },
+    {
+      "role": "user",
+      "content": "What about Daxing Airport?"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "The current weather conditions at Daxing Airport are as follows:\n\n- **Temperature**: 18\u00b0C\n- **Dew Point**: 16\u00b0C\n- **Wind Speed**: 050\u00b0 at 5 m/s\n- **Visibility**: 3000 meters\n- **Weather Phenomena**: Rain\n- **Clouds**: Broken clouds at 2000 feet\n- **Atmospheric Pressure**: 1012 hPa. The future weather forecast shows:\n\n- **2024-05-26 18:00:00**: Wind speed 050\u00b0 at 5 m/s, visibility 3000 meters, weather phenomena is rain, broken clouds at 2000 feet.\n- **2024-05-27 06:00:00**: The temperature will r"
+    },
+    {
+      "role": "user",
+      "content": "It seems the weather is bad. Will there be any delays?"
+    }
+  ],
+  "analysis": "Model selected the correct tool but produced argument values that failed validation: '(no reason recorded)'. Subcategory: Other Argument Error."
+}

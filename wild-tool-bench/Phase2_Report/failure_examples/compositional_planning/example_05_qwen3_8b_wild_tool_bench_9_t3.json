@@ -1,0 +1,86 @@
+{
+  "example_id": "CPF_05",
+  "category": "CPF",
+  "category_description": "Compositional Planning Failure - multi-step task orchestration error",
+  "subcategory": "Wrong Tool in Sequence",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_9",
+    "turn_idx": 3,
+    "task_type": "Mixed Multi-Tool",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "Get the content of the other articles above for me. Also, I want to know about other articles by the authors of those other articles.",
+  "expected_trajectory": {
+    "action_names": [
+      "getArticleMetadata",
+      "getArticleMetadata",
+      "getArticleMetadata",
+      "getArticleMetadata",
+      "getArticleMetadata",
+      "getArticleByAuthor",
+      "getArticleByAuthor",
+      "getArticleByAuthor",
+      "getArticleByAuthor",
+      "getArticleByAuthor",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"url\": \"https://www.bbc.com/news/world-12345678\"}",
+      "{\"url\": \"https://www.bbc.com/news/technology-23456789\"}",
+      "{\"url\": \"https://www.espn.com/nba/story/_/id/12345678\"}",
+      "{\"url\": \"https://www.espn.com/nfl/story/_/id/23456789\"}",
+      "{\"url\": \"https://www.espn.com/tennis/story/_/id/34567890\"}",
+      "{\"author\": \"Jane Smith\"}",
+      "{\"author\": \"Emily Johnson\"}",
+      "{\"author\": \"Michael Brown\"}",
+      "{\"author\": \"Sarah Lee\"}",
+      "{\"author\": \"David Wilson\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "getArticleMetadata",
+      "getArticleMetadata",
+      "getArticleByAuthor"
+    ],
+    "arguments": [
+      "{\"url\":\"https://www.bbc.com/news/world-12345678\"}",
+      "{\"url\":\"https://www.bbc.com/news/technology-23456789\"}",
+      "{\"author\":\"Jane Smith\",\"limit\":\"2\"}"
+    ],
+    "text_response": "### Summary of Articles (BBC Results)\n\n1. **The Global Climate Change Conference is held in Paris**  \n   - **Author**: Jane Smith  \n   - **Published**: December 22, 2024  \n   - **Summary**: Leaders from around the world gather in Paris to discuss measures to address climate change.  \n   - **Link**: [Read more](https://www.bbc.com/news/world-12345678)  \n\n2. **Tech giants release the latest smartphone**  \n   - **Author**: Emily Johnson  \n   - **Published**: December 22, 2024  \n   - **Summary**: Th",
+    "has_text_response": true
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "user",
+      "content": "I want to obtain the metadata of one of them"
+    },
+    {
+      "role": "assistant",
+      "content": "Could you please provide the URL or title of the specific article you are interested in so that I can retrieve the metadata of the article for you?"
+    },
+    {
+      "role": "user",
+      "content": "The last one in the first round of results"
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Article Metadata\n\n- **Title**: Economists Predict Global Economic Growth in 2025\n- **Author**: John Doe\n- **Publication Date**: December 22, 2024\n- **URL**: [Read the Article](https://www.bbc.com/news/business-34567890)\n- **Summary**: Experts predict a moderate global economic growth next year, mainly benefited from the recovery of emerging markets."
+    },
+    {
+      "role": "user",
+      "content": "Get the content of the other articles above for me. Also, I want to know about other articles by the authors of those other articles."
+    }
+  ],
+  "analysis": "Multi-tool task 'Mixed Multi-Tool' expected 11 actions: ['getArticleMetadata', 'getArticleMetadata', 'getArticleMetadata', 'getArticleMetadata', 'getArticleMetadata', 'getArticleByAuthor', 'getArticleByAuthor', 'getArticleByAuthor', 'getArticleByAuthor', 'getArticleByAuthor', 'prepare_to_answer']. Model produced 3 tool calls: ['getArticleMetadata', 'getArticleMetadata', 'getArticleByAuthor']. Subcategory: Wrong Tool in Sequence."
+}

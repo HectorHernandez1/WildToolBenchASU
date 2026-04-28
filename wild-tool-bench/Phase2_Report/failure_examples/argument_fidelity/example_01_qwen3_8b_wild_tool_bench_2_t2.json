@@ -1,0 +1,64 @@
+{
+  "example_id": "AFF_01",
+  "category": "AFF",
+  "category_description": "Argument Fidelity Failure - tool name correct but argument values wrong",
+  "subcategory": "Other Argument Error",
+  "metadata": {
+    "model": "qwen3:8b",
+    "session_id": "wild_tool_bench_2",
+    "turn_idx": 2,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Partial Information",
+    "action_name_label": "correct",
+    "action_arguments_label": "error"
+  },
+  "user_message": "Then help me synchronize again.",
+  "expected_trajectory": {
+    "action_names": [
+      "syncTransactions",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"user_id\": \"12345\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "syncTransactions"
+    ],
+    "arguments": [
+      "{\"sync\":true,\"user_id\":\"12345\"}"
+    ],
+    "text_response": "The transaction records have been synchronized successfully. Here are the details:\n\n- **Synchronization Status**: Successfully synchronized to all relevant databases and associated systems.\n- **Device Status**: All terminal devices can obtain the latest data in real time.\n- **Synced Transaction**: \n  - **Date**: 2024-08-01\n  - **Amount**: 200 yuan\n  - **Category**: Entertainment Expenses\n\nLet me know if you need further assistance!",
+    "has_text_response": true
+  },
+  "error_reason": "",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "Successfully retrieved the budget data for user ID \u201c12345\u201d as follows:\n\n**Budget Data**: \n - **Monthly Total Budget**: 5000 yuan\n - **Budget Allocation**: \n    - **Living Expenses**: 2000 yuan\n    - **Entertainment Expenses**: 1000 yuan\n    - **Savings Goal**: 1500 yuan\n    - **Other Miscellaneous**: 500 yuan"
+    },
+    {
+      "role": "user",
+      "content": "Create another new transaction record with an amount of 200 yuan, a date of 2024-08-01, and classify it as 'Entertainment Expenses'."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Transaction Record Successfully Created\nA new transaction record has been successfully created:\n- **Transaction ID**: TX20240801153428765432001\n- **Amount**: 200 yuan\n- **Date**: 2024-08-01\n- **Category**: Entertainment Expense"
+    },
+    {
+      "role": "user",
+      "content": "Then help me synchronize again."
+    }
+  ],
+  "analysis": "Model selected the correct tool but produced argument values that failed validation: '(no reason recorded)'. Subcategory: Other Argument Error."
+}

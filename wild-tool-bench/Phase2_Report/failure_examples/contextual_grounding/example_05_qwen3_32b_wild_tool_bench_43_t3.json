@@ -1,0 +1,68 @@
+{
+  "example_id": "CGF_05",
+  "category": "CGF",
+  "category_description": "Contextual Grounding Failure - model fails to ground tool args in prior turn context",
+  "subcategory": "Long-Range \u2192 Wrong Tool",
+  "metadata": {
+    "model": "qwen3:32b",
+    "session_id": "wild_tool_bench_43",
+    "turn_idx": 3,
+    "task_type": "Single-Tool",
+    "turn_subtype": "Long-Range Dependency",
+    "action_name_label": "error",
+    "action_arguments_label": ""
+  },
+  "user_message": "Can you also recommend some similar activities that are not suitable for winter in the first round?",
+  "expected_trajectory": {
+    "action_names": [
+      "recommandActivities",
+      "prepare_to_answer"
+    ],
+    "action_arguments": [
+      "{\"desc\": \"Organize a family picnic in a nearby park or your own backyard and enjoy the outdoor time.\", \"name\": \"Family Picnic\"}",
+      "{\"answer_type\": \"tool\"}"
+    ]
+  },
+  "predicted_trajectory": {
+    "tools_called": [
+      "recommandActivities",
+      "recommandActivities",
+      "recommandActivities"
+    ],
+    "arguments": [
+      "{\"name\":\"Family Game Night\",\"desc\":\"Organize a Family Game Night and choose some board games or video games suitable for the whole family to participate in.\",\"requirement\":\"Not suitable for winter\"}",
+      "{\"name\":\"Family Movie Night\",\"desc\":\"Choose a movie that the whole family likes, prepare some popcorn, and enjoy the movie time together.\",\"requirement\":\"Not suitable for winter\"}",
+      "{\"name\":\"Family Picnic\",\"desc\":\"Organize a family picnic in a nearby park or your own backyard and enjoy the outdoor time.\",\"requirement\":\"Not suitable for winter\"}"
+    ],
+    "text_response": "",
+    "has_text_response": false
+  },
+  "error_reason": "action name not in candidate_answer_function_list",
+  "conversation_context": [
+    {
+      "role": "assistant",
+      "content": "In the above activities, both Family Game Night and Family Movie Night are great for winter, and some winter elements can be added to make the activities more atmospheric. Here is a detailed introduction for you:\n- **Family Game Night**\n    - **Adding Winter Elements**: You can set the game location in the warm living room and place some winter-themed decorations around, such as snowflake stickers and snowman dolls. Prepare some winter specialties like hot chocolate and gingerbread, so that ever"
+    },
+    {
+      "role": "user",
+      "content": "Are there any similar activities? Keep the difficulty and budget the same, but need more details."
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": ""
+    },
+    {
+      "role": "assistant",
+      "content": "### Recommended Winter Family Activities\n\nHere are some recommended family activities suitable for winter, maintaining simple difficulty and low budget:\n\n1. **Winter Theme Board Game Night**\n   - Description: Choose some winter-themed board games, such as the \"Frozen\" board game, and enjoy warm indoor time. You can decorate the room with some snowflake decorations, play soft winter music, and prepare hot chocolate and gingerbread as snacks to add to the winter atmosphere.\n   - Difficulty: Easy\n "
+    },
+    {
+      "role": "user",
+      "content": "Can you also recommend some similar activities that are not suitable for winter in the first round?"
+    }
+  ],
+  "analysis": "Turn subtype 'Long-Range Dependency' requires the model to resolve references using prior turn context. The model produced an error of type 'Long-Range \u2192 Wrong Tool' because it failed to bind the reference to the correct entity from earlier turns."
+}
