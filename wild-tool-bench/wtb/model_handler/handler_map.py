@@ -2,6 +2,7 @@ from .api_inference.oai import OpenAIHandler
 from .api_inference.deepseek import DeepSeekAPIHandler
 from .api_inference.hunyuan import HunYuanAPIHandler
 from .api_inference.ollama import OllamaHandler
+from .wtbmas import WTBMASHandler
 
 
 api_inference_handler_map = {
@@ -14,6 +15,11 @@ api_inference_handler_map = {
     "qwen3:14b": OllamaHandler,
     "qwen3:32b": OllamaHandler,
     "gemma4:31b": OllamaHandler,
+    # WTB-MAS multi-agent system. Backbone is parsed from the prefix.
+    "wtbmas:qwen3:8b":  WTBMASHandler,
+    "wtbmas:qwen3:14b": WTBMASHandler,
+    "wtbmas:qwen3:32b": WTBMASHandler,
+    "wtbmas:gemma4:31b": WTBMASHandler,
 }
 
 HANDLER_MAP = {**api_inference_handler_map}
