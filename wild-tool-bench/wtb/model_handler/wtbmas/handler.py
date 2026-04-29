@@ -24,6 +24,7 @@ from typing import Any
 from wtb.model_handler.base_handler import BaseHandler
 
 from .orchestrator import WTBMASOrchestrator
+from .sidecar_logger import SidecarLogger
 
 
 _BACKBONE_PREFIX = "wtbmas:"
@@ -50,6 +51,8 @@ class WTBMASHandler(BaseHandler):
         self.backbone = backbone
         self.orchestrator = WTBMASOrchestrator(backbone, temperature=temperature)
         self._last_session_id: str | None = None
+        # Sidecar logger writes per-turn agent telemetry alongside the result file.
+        self._sidecar = SidecarLogger(model_name)
 
     # ─────────────────────────────────────────────────────
     # BaseHandler API
@@ -106,6 +109,17 @@ class WTBMASHandler(BaseHandler):
             }
         else:
             result = result_box[0]
+
+        # Persist per-agent telemetry to sidecar JSONL.
+        try:
+            self._sidecar.log_turn(
+                session_id=session_id,
+                turn_idx=turn_idx,
+                result=result,
+            )
+        except Exception:  # noqa: BLE001
+            # Sidecar logging must never break the run. Swallow on error.
+            pass
 
         # Synthesize an OpenAI ChatCompletion-shaped response (dict).
         # _parse_api_response below consumes this dict (we override to skip .json()).
