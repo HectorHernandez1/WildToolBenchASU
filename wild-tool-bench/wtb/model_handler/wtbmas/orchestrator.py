@@ -1,119 +1,146 @@
-"""WTB-MAS orchestrator.
+"""WTB-MAS orchestrator (v2 — wrapper-style).
 
-Coordinates the six agents per the pseudocode in the Phase 2 proposal:
+Lessons from the v1 experiment (qwen3:8b dropped from 36% baseline → 2.8%):
 
-    User Turn → IR → ┬→ Tool: PA (uses MCA-grounded query) → AV per call → emit
-                     ├→ Clarify: DA → ask_user_for_required_parameters
-                     └→ Chat: direct response
-                                 ↓
-                     All paths → CR → final action
+  - The aggressive Planner system prompt was OVERRIDING the LLM's natural
+    "I'm done with tools, let me return text now" behavior. The harness
+    interprets a content-only response as `prepare_to_answer({"answer_type":
+    "tool"})` — but our PA kept re-emitting tool calls instead.
+  - The Chat branch returned empty content+null tool_calls, which the
+    harness rejects.
+  - The Critic's retry was injecting "previous attempt was incomplete or
+    wrong" prompts that further confused the LLM.
 
-The orchestrator outputs a synthesized OpenAI-style chat-completion *dict*
-that the WTBMASHandler returns to the evaluation harness.
+v2 design — WTB-MAS as a thin wrapper around the same call the baseline
+makes, NOT a replacement for the LLM's planning:
+
+  Per-call flow (the eval harness drives multi-step on its own):
+
+  ┌─ Is this a continuation step? (last msg = tool observation) ─┐
+  │  YES → pass straight through to LLM, no agent wrappers       │
+  │  NO (fresh user turn) → run intent routing                   │
+  └──────────────────────────────────────────────────────────────┘
+
+  Fresh user turn → IR classifies:
+    - CHAT    : call LLM with NO tools → return content
+    - CLARIFY : DA detects ambiguity → emit ask_user_for_required_parameters
+                (or fall through to TOOL if DA disagrees)
+    - TOOL    : MCA prepends entity context → call LLM with tools
+                AV repairs tool-call arguments before returning
+
+The Critic and the heavy Planner system prompt are gone. The LLM IS the
+planner now — we just route, validate, and (lightly) ground references.
 """
 from __future__ import annotations
 
 import json
+import secrets
+import threading
 import time
 from typing import Any
 
 from .agents.base import LLMClient
 from .agents import (
     ArgumentValidator,
-    CriticAgent,
     DisambiguationAgent,
     IntentRouter,
     MemoryAgent,
-    PlannerAgent,
 )
 from .memory import SharedMemoryStore
 
 
+_DEFAULT_LLM_TIMEOUT = 300
+
+
 class WTBMASOrchestrator:
-    """Single-backbone orchestrator (Strategy A).
-
-    Each LLM-backed agent shares the same Ollama-served model with different
-    system prompts. The shared memory store persists across turns within one
-    session and is reset by the handler when a new session starts.
-    """
-
-    MAX_CRITIC_RETRIES = 1
+    """Wrapper-style orchestrator (v2)."""
 
     def __init__(self, model_name: str, temperature: float = 0.0):
         self.model_name = model_name
         self.temperature = temperature
         llm = LLMClient(model_name, temperature)
-        self.memory = SharedMemoryStore()
         self._llm = llm
+        self.memory = SharedMemoryStore()
         self.ir = IntentRouter(llm)
         self.da = DisambiguationAgent(llm)
-        self.pa = PlannerAgent(llm)
         self.mca = MemoryAgent(self.memory)
         self.av = ArgumentValidator()
-        self.cr = CriticAgent(llm)
 
     def reset_session(self) -> None:
         self.memory.reset()
 
+    # ── public entry point ───────────────────────────────────────
     def handle_turn(self, messages: list[dict], tools: list[dict], turn_idx: int) -> dict:
-        """Run the 6-agent pipeline for one turn. Returns a dict with:
-
-            {
-              "tool_calls": [...openai_tool_call_dicts...] | None,
-              "content": str | None,
-              "intent": "TOOL"|"CLARIFY"|"CHAT",
-              "agent_log": {...},
-              "input_token": int,
-              "output_token": int,
-              "total_latency": float,
-            }
-        """
         agent_log: dict[str, Any] = {}
         total_latency = 0.0
 
-        # Pull latest user message
-        user_message = ""
-        for m in reversed(messages):
-            if m.get("role") == "user":
-                user_message = str(m.get("content", ""))
-                break
+        last = messages[-1] if messages else {}
+        last_role = last.get("role", "")
 
-        # Build a compact history excerpt for IR/DA prompts
-        history_lines = []
-        for m in messages[-6:-1]:  # last few before the current user turn
-            role = m.get("role", "")
-            c = m.get("content")
-            if c is None:
-                # tool/assistant w/ tool_calls
-                tc = m.get("tool_calls") or []
-                if tc:
-                    names = [(t.get("function") or {}).get("name", "?") for t in tc]
-                    c = f"<tool_calls: {names}>"
-                else:
-                    c = ""
-            history_lines.append(f"{role}: {str(c)[:200]}")
-        history_excerpt = "\n".join(history_lines)
+        # ─────────────────────────────────────────────────────────
+        # CONTINUATION STEP — model has just received a tool result.
+        # Pass straight to the LLM with the same tools; let it decide
+        # whether to call another tool or return content text.
+        # ─────────────────────────────────────────────────────────
+        if last_role == "tool":
+            agent_log["mode"] = "continuation"
+            resp = self._llm_call(messages, tools=tools)
+            agent_log["llm"] = {"latency": resp["latency"], "had_tool_calls": bool(resp["tool_calls"])}
+            # AV repair on any tool calls
+            if resp["tool_calls"]:
+                resp["tool_calls"], av_log = self._repair_tool_calls(resp["tool_calls"], tools)
+                agent_log["AV"] = av_log
+                # Update memory tracker
+                for tc in resp["tool_calls"]:
+                    self.mca.update_from_action(
+                        (tc.get("function") or {}).get("name", ""),
+                        _decode_args((tc.get("function") or {}).get("arguments")),
+                        None,
+                        turn_idx,
+                    )
+            return self._finalize(
+                tool_calls=resp["tool_calls"],
+                content=resp["content"],
+                intent="CONTINUE",
+                agent_log=agent_log,
+                latency=resp["latency"],
+                input_tokens=resp["input_token"],
+                output_tokens=resp["output_token"],
+            )
 
-        # ── 1. Intent Router (IR) ─────────────────────────
+        # ─────────────────────────────────────────────────────────
+        # FRESH USER TURN — run intent routing.
+        # ─────────────────────────────────────────────────────────
+        user_message = str(last.get("content", "")) if last_role == "user" else ""
+
+        # Compact history excerpt (last few messages before current user turn)
+        history_excerpt = self._build_history_excerpt(messages[:-1])
+
         intent, ir_reason, ir_lat = self.ir.classify(user_message, history_excerpt)
         total_latency += ir_lat
         agent_log["IR"] = {"intent": intent, "reason": ir_reason, "latency": ir_lat}
 
+        # ── CHAT ─────────────────────────────────────────────────
         if intent == "CHAT":
-            # Direct response — no tool, no further agent calls beyond critic
+            agent_log["mode"] = "chat"
+            # Generate a natural text response, no tools.
+            resp = self._llm_call(messages, tools=None)
+            total_latency += resp["latency"]
             return self._finalize(
-                user_message=user_message,
-                tool_calls=None,
-                content="",
+                tool_calls=resp["tool_calls"],   # almost certainly None
+                content=resp["content"],          # the actual chat reply
+                intent=intent,
                 agent_log=agent_log,
                 latency=total_latency,
-                input_tokens=0,
-                output_tokens=0,
+                input_tokens=resp["input_token"],
+                output_tokens=resp["output_token"],
             )
 
-        # ── 2. Disambiguation (DA) — only if intent is CLARIFY OR proactively ──
+        # ── CLARIFY ──────────────────────────────────────────────
         if intent == "CLARIFY":
-            needs, missing, da_reason, da_lat = self.da.detect(user_message, tools, history_excerpt)
+            needs, missing, da_reason, da_lat = self.da.detect(
+                user_message, tools, history_excerpt
+            )
             total_latency += da_lat
             agent_log["DA"] = {
                 "needs_clarification": needs,
@@ -122,95 +149,154 @@ class WTBMASOrchestrator:
                 "latency": da_lat,
             }
             if needs:
-                clarify_action = DisambiguationAgent.to_action(missing or [])
-                fake_tc = self._fake_tool_call(clarify_action["name"], clarify_action["arguments"])
+                fake_tc = self._fake_tool_call(
+                    "ask_user_for_required_parameters",
+                    {"tool_list": missing},
+                )
                 return self._finalize(
-                    user_message=user_message,
                     tool_calls=[fake_tc],
                     content=None,
+                    intent=intent,
                     agent_log=agent_log,
                     latency=total_latency,
                     input_tokens=0,
                     output_tokens=0,
                 )
-            # DA decided no clarification needed → fall through to tool branch
+            # DA disagreed — fall through to TOOL.
 
-        # ── 3. Memory / Coreference (MCA) ─────────────────
+        # ── TOOL ─────────────────────────────────────────────────
+        agent_log["mode"] = "tool"
+        # MCA: prepend entity context to user message (if there are entities)
         grounded_user = self.mca.resolve_references(user_message)
-        agent_log["MCA"] = {"grounded_message_excerpt": grounded_user[:200]}
+        agent_log["MCA"] = {"context_injected": grounded_user != user_message}
 
-        # ── 4. Planner (PA) ───────────────────────────────
-        # Pass prior assistant + tool messages so the planner has full conversation context
-        prior = [m for m in messages if m.get("role") != "system"][:-1]
-        tool_calls, content_text, raw_message, pa_lat = self.pa.plan(
-            grounded_user_message=grounded_user,
-            tool_schemas=tools,
-            prior_assistant_messages=prior,
-        )
-        total_latency += pa_lat
-        agent_log["PA"] = {
-            "n_tool_calls": len(tool_calls),
-            "tool_names": [tc.get("name") for tc in tool_calls],
-            "latency": pa_lat,
-        }
+        # Build the messages for the LLM call. Replace the last user message
+        # with the grounded version (if changed).
+        call_messages = list(messages)
+        if grounded_user != user_message:
+            call_messages = list(messages[:-1]) + [{"role": "user", "content": grounded_user}]
 
-        # ── 5. Argument Validator (AV) ────────────────────
-        repaired_calls = []
-        av_log = []
-        for tc in tool_calls:
-            ok, errors, repaired = self.av.check(tc.get("name", ""), tc.get("arguments", {}), tools)
-            av_log.append({"name": tc.get("name"), "ok": ok, "errors": errors[:5]})
-            tc_out = dict(tc)
-            tc_out["arguments"] = repaired
-            repaired_calls.append(tc_out)
-        agent_log["AV"] = av_log
-        tool_calls = repaired_calls
+        resp = self._llm_call(call_messages, tools=tools)
+        total_latency += resp["latency"]
+        agent_log["LLM"] = {"latency": resp["latency"], "n_tool_calls": len(resp["tool_calls"] or [])}
 
-        # Update memory with these tool calls (no observations available — eval harness handles them)
-        for tc in tool_calls:
-            self.mca.update_from_action(tc.get("name", ""), tc.get("arguments", {}), None, turn_idx)
-
-        # Synthesize OpenAI-style tool_calls
-        synthesized_tool_calls = [self._fake_tool_call(tc["name"], tc["arguments"]) for tc in tool_calls]
-
-        # ── 6. Critic (CR) ────────────────────────────────
-        ok, retry, cr_reason, cr_lat = self.cr.review(
-            user_message=user_message,
-            planned_actions=tool_calls,
-            had_text_response=bool(content_text),
-        )
-        total_latency += cr_lat
-        agent_log["CR"] = {"ok": ok, "retry": retry, "reason": cr_reason, "latency": cr_lat}
-
-        # Single retry if critic asks (best-effort; we don't loop more than once)
-        if retry and not ok:
-            tool_calls2, content2, _, pa_lat2 = self.pa.plan(
-                grounded_user_message=grounded_user + "\n[Critic retry: previous attempt was incomplete or wrong.]",
-                tool_schemas=tools,
-                prior_assistant_messages=prior,
-            )
-            total_latency += pa_lat2
-            agent_log["PA_retry"] = {"n_tool_calls": len(tool_calls2), "latency": pa_lat2}
-            if tool_calls2:
-                tool_calls = tool_calls2
-                synthesized_tool_calls = [self._fake_tool_call(tc["name"], tc["arguments"]) for tc in tool_calls]
-                content_text = content2
+        # AV repair tool-call arguments
+        if resp["tool_calls"]:
+            resp["tool_calls"], av_log = self._repair_tool_calls(resp["tool_calls"], tools)
+            agent_log["AV"] = av_log
+            # Update memory tracker
+            for tc in resp["tool_calls"]:
+                self.mca.update_from_action(
+                    (tc.get("function") or {}).get("name", ""),
+                    _decode_args((tc.get("function") or {}).get("arguments")),
+                    None,
+                    turn_idx,
+                )
 
         return self._finalize(
-            user_message=user_message,
-            tool_calls=synthesized_tool_calls if synthesized_tool_calls else None,
-            content=content_text,
+            tool_calls=resp["tool_calls"],
+            content=resp["content"],
+            intent=intent,
             agent_log=agent_log,
             latency=total_latency,
-            input_tokens=0,
-            output_tokens=0,
+            input_tokens=resp["input_token"],
+            output_tokens=resp["output_token"],
         )
 
-    # ── helpers ─────────────────────────────────────────
+    # ── helpers ──────────────────────────────────────────────────
+    def _llm_call(self, messages: list[dict], tools: list[dict] | None) -> dict:
+        """Make a single OpenAI/Ollama chat-completion call with a wall-clock timeout.
+
+        Returns dict with keys: content, tool_calls, input_token, output_token, latency.
+        """
+        result_box: list = [None]
+        error_box: list = [None]
+
+        def _call():
+            try:
+                start = time.time()
+                kwargs: dict[str, Any] = {
+                    "model": self._llm.model_name,
+                    "messages": messages,
+                    "temperature": self._llm.temperature,
+                    "extra_body": {"keep_alive": "30m"},
+                }
+                if tools:
+                    kwargs["tools"] = tools
+                resp = self._llm.client.chat.completions.create(**kwargs)
+                result_box[0] = (resp, time.time() - start)
+            except Exception as exc:  # noqa: BLE001
+                error_box[0] = exc
+
+        t = threading.Thread(target=_call, daemon=True)
+        t.start()
+        t.join(timeout=_DEFAULT_LLM_TIMEOUT)
+        if t.is_alive():
+            return {
+                "content": f"[wtbmas LLM call timeout after {_DEFAULT_LLM_TIMEOUT}s]",
+                "tool_calls": None,
+                "input_token": 0,
+                "output_token": 0,
+                "latency": float(_DEFAULT_LLM_TIMEOUT),
+            }
+        if error_box[0] is not None:
+            return {
+                "content": f"[wtbmas LLM error: {error_box[0]}]",
+                "tool_calls": None,
+                "input_token": 0,
+                "output_token": 0,
+                "latency": 0.0,
+            }
+        api_response, latency = result_box[0]
+        parsed = json.loads(api_response.json())
+        message = parsed["choices"][0]["message"]
+        return {
+            "content": message.get("content"),
+            "tool_calls": message.get("tool_calls"),
+            "input_token": parsed.get("usage", {}).get("prompt_tokens", 0),
+            "output_token": parsed.get("usage", {}).get("completion_tokens", 0),
+            "latency": latency,
+        }
+
+    def _repair_tool_calls(self, tool_calls: list[dict], tools: list[dict]) -> tuple[list[dict], list[dict]]:
+        """Run the AV over each tool call. Return (possibly-repaired tool_calls, log)."""
+        out: list[dict] = []
+        log: list[dict] = []
+        for tc in tool_calls:
+            fn = tc.get("function") or {}
+            name = fn.get("name", "")
+            raw_args = fn.get("arguments")
+            args_dict = _decode_args(raw_args)
+            ok, errors, repaired = self.av.check(name, args_dict, tools)
+            log.append({"name": name, "ok": ok, "errors": errors[:5]})
+            if errors:
+                # Re-encode repaired args back to JSON string (OpenAI tool_calls format)
+                tc_out = dict(tc)
+                tc_out["function"] = dict(fn)
+                tc_out["function"]["arguments"] = json.dumps(repaired, ensure_ascii=False)
+                out.append(tc_out)
+            else:
+                out.append(tc)
+        return out, log
+
+    @staticmethod
+    def _build_history_excerpt(prior_messages: list[dict]) -> str:
+        lines = []
+        for m in prior_messages[-6:]:
+            role = m.get("role", "")
+            c = m.get("content")
+            if c is None:
+                tc = m.get("tool_calls") or []
+                if tc:
+                    names = [(t.get("function") or {}).get("name", "?") for t in tc]
+                    c = f"<tool_calls: {names}>"
+                else:
+                    c = ""
+            lines.append(f"{role}: {str(c)[:200]}")
+        return "\n".join(lines)
+
     @staticmethod
     def _fake_tool_call(name: str, arguments: dict | str) -> dict:
-        """Build an OpenAI-style tool_call dict that the eval harness will accept."""
-        import secrets
         if isinstance(arguments, dict):
             arg_text = json.dumps(arguments, ensure_ascii=False)
         else:
@@ -225,9 +311,9 @@ class WTBMASOrchestrator:
     @staticmethod
     def _finalize(
         *,
-        user_message: str,
-        tool_calls: list | None,
-        content: str | None,
+        tool_calls,
+        content,
+        intent: str,
         agent_log: dict,
         latency: float,
         input_tokens: int,
@@ -236,9 +322,20 @@ class WTBMASOrchestrator:
         return {
             "tool_calls": tool_calls,
             "content": content,
-            "intent": agent_log.get("IR", {}).get("intent"),
+            "intent": intent,
             "agent_log": agent_log,
             "total_latency": latency,
             "input_token": input_tokens,
             "output_token": output_tokens,
         }
+
+
+def _decode_args(args_text):
+    if isinstance(args_text, dict):
+        return args_text
+    if isinstance(args_text, str):
+        try:
+            return json.loads(args_text)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    return {}
