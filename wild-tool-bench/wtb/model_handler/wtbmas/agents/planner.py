@@ -12,9 +12,15 @@ benchmark's optimal-path graph).
 from __future__ import annotations
 
 import json
+import os
+import threading
+import time
 from typing import Any
 
 from .base import LLMClient
+
+
+_DEFAULT_PLANNER_TIMEOUT = int(os.getenv("OLLAMA_REQUEST_TIMEOUT", "300"))
 
 
 _SYSTEM_PROMPT = """You are a planner that calls tools to fulfill user requests.
@@ -54,23 +60,39 @@ class PlannerAgent:
             messages.extend(prior_assistant_messages)
         messages.append({"role": "user", "content": grounded_user_message})
 
-        # Use the existing OpenAI-compatible function-calling path
-        try:
-            from openai import OpenAI as _OpenAI  # noqa: F401  (already imported in base)
-            api_response = self._llm.client.chat.completions.create(
-                model=self._llm.model_name,
-                messages=messages,
-                temperature=self._llm.temperature,
-                tools=tool_schemas,
-                extra_body={"keep_alive": "30m"},
-            )
-        except Exception as exc:  # noqa: BLE001
-            return [], f"planner_error: {exc}", {}, 0.0
+        # Use the existing OpenAI-compatible function-calling path with a hard
+        # wall-clock timeout (the OpenAI SDK's default doesn't help when Ollama
+        # streams tokens slowly or hangs mid-generation).
+        result_box: list = [None]
+        error_box: list = [None]
+
+        def _call():
+            try:
+                start = time.time()
+                resp = self._llm.client.chat.completions.create(
+                    model=self._llm.model_name,
+                    messages=messages,
+                    temperature=self._llm.temperature,
+                    tools=tool_schemas,
+                    extra_body={"keep_alive": "30m"},
+                )
+                result_box[0] = (resp, time.time() - start)
+            except Exception as exc:  # noqa: BLE001
+                error_box[0] = exc
+
+        t = threading.Thread(target=_call, daemon=True)
+        t.start()
+        t.join(timeout=_DEFAULT_PLANNER_TIMEOUT)
+        if t.is_alive():
+            return [], f"planner_error: timeout after {_DEFAULT_PLANNER_TIMEOUT}s", {}, float(_DEFAULT_PLANNER_TIMEOUT)
+        if error_box[0] is not None:
+            return [], f"planner_error: {error_box[0]}", {}, 0.0
+        api_response, _wall = result_box[0]
 
         parsed = json.loads(api_response.json())
         choice = parsed["choices"][0]
         message = choice["message"]
-        latency = float(parsed.get("usage", {}).get("total_time", 0.0))
+        latency = float(parsed.get("usage", {}).get("total_time", _wall))
 
         tool_calls_raw = message.get("tool_calls") or []
         tool_calls: list[dict] = []

@@ -17,6 +17,7 @@ The model name passed to WTBMASHandler.__init__ must use the prefix
 from __future__ import annotations
 
 import os
+import threading
 import time
 from typing import Any
 
@@ -26,6 +27,10 @@ from .orchestrator import WTBMASOrchestrator
 
 
 _BACKBONE_PREFIX = "wtbmas:"
+# Hard cap on the WHOLE multi-agent pipeline per turn-step. Generous: the
+# orchestrator may make 4–6 LLM calls × the planner timeout each, but in
+# practice should complete in well under a minute. This is a backstop.
+_DEFAULT_TURN_TIMEOUT = int(os.getenv("WTBMAS_TURN_TIMEOUT", "600"))
 
 
 class WTBMASHandler(BaseHandler):
@@ -61,9 +66,46 @@ class WTBMASHandler(BaseHandler):
         tools = inference_data.get("tools", [])
         turn_idx = inference_data.get("task_idx", 0)
 
+        # Wrap the whole orchestrator call in a wall-clock timeout. If any
+        # downstream agent hangs, we give up on this step rather than blocking
+        # the entire benchmark run.
+        result_box: list = [None]
+        error_box: list = [None]
+
+        def _run():
+            try:
+                result_box[0] = self.orchestrator.handle_turn(messages, tools, turn_idx)
+            except Exception as exc:  # noqa: BLE001
+                error_box[0] = exc
+
         start = time.time()
-        result = self.orchestrator.handle_turn(messages, tools, turn_idx)
+        t = threading.Thread(target=_run, daemon=True)
+        t.start()
+        t.join(timeout=_DEFAULT_TURN_TIMEOUT)
         latency = time.time() - start
+
+        if t.is_alive():
+            # Hard timeout — synthesize an empty response so the eval harness
+            # records the turn and moves on rather than hanging forever.
+            result = {
+                "tool_calls": None,
+                "content": f"[wtbmas timeout after {_DEFAULT_TURN_TIMEOUT}s]",
+                "intent": "TIMEOUT",
+                "agent_log": {"error": "turn_timeout"},
+                "input_token": 0,
+                "output_token": 0,
+            }
+        elif error_box[0] is not None:
+            result = {
+                "tool_calls": None,
+                "content": f"[wtbmas error: {error_box[0].__class__.__name__}: {error_box[0]}]",
+                "intent": "ERROR",
+                "agent_log": {"error": str(error_box[0])},
+                "input_token": 0,
+                "output_token": 0,
+            }
+        else:
+            result = result_box[0]
 
         # Synthesize an OpenAI ChatCompletion-shaped response (dict).
         # _parse_api_response below consumes this dict (we override to skip .json()).
