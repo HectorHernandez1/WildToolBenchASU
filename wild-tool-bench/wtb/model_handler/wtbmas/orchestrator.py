@@ -109,63 +109,19 @@ class WTBMASOrchestrator:
             )
 
         # ─────────────────────────────────────────────────────────
-        # FRESH USER TURN — run intent routing.
+        # FRESH USER TURN — v3.1: trust the LLM to decide whether to
+        # call a tool, return text, or do something else. Skip the
+        # explicit IR/DA branching that caused 0% accuracy on Clarify
+        # and a regression on Chat in v3.0.
+        #
+        # We keep MCA (entity-context grounding) and AV (arg repair)
+        # because they were demonstrably net-positive on Single-Tool
+        # turns (+14pp over baseline).
         # ─────────────────────────────────────────────────────────
         user_message = str(last.get("content", "")) if last_role == "user" else ""
+        agent_log["mode"] = "uniform"
+        agent_log["IR"] = {"intent": "SKIPPED", "reason": "v3.1: always pass through to LLM"}
 
-        # Compact history excerpt (last few messages before current user turn)
-        history_excerpt = self._build_history_excerpt(messages[:-1])
-
-        intent, ir_reason, ir_lat = self.ir.classify(user_message, history_excerpt)
-        total_latency += ir_lat
-        agent_log["IR"] = {"intent": intent, "reason": ir_reason, "latency": ir_lat}
-
-        # ── CHAT ─────────────────────────────────────────────────
-        if intent == "CHAT":
-            agent_log["mode"] = "chat"
-            # Generate a natural text response, no tools.
-            resp = self._llm_call(messages, tools=None)
-            total_latency += resp["latency"]
-            return self._finalize(
-                tool_calls=resp["tool_calls"],   # almost certainly None
-                content=resp["content"],          # the actual chat reply
-                intent=intent,
-                agent_log=agent_log,
-                latency=total_latency,
-                input_tokens=resp["input_token"],
-                output_tokens=resp["output_token"],
-            )
-
-        # ── CLARIFY ──────────────────────────────────────────────
-        if intent == "CLARIFY":
-            needs, missing, da_reason, da_lat = self.da.detect(
-                user_message, tools, history_excerpt
-            )
-            total_latency += da_lat
-            agent_log["DA"] = {
-                "needs_clarification": needs,
-                "missing": missing,
-                "reason": da_reason,
-                "latency": da_lat,
-            }
-            if needs:
-                fake_tc = self._fake_tool_call(
-                    "ask_user_for_required_parameters",
-                    {"tool_list": missing},
-                )
-                return self._finalize(
-                    tool_calls=[fake_tc],
-                    content=None,
-                    intent=intent,
-                    agent_log=agent_log,
-                    latency=total_latency,
-                    input_tokens=0,
-                    output_tokens=0,
-                )
-            # DA disagreed — fall through to TOOL.
-
-        # ── TOOL ─────────────────────────────────────────────────
-        agent_log["mode"] = "tool"
         # MCA: prepend entity context to user message (if there are entities)
         grounded_user = self.mca.resolve_references(user_message)
         agent_log["MCA"] = {"context_injected": grounded_user != user_message}
@@ -196,7 +152,7 @@ class WTBMASOrchestrator:
         return self._finalize(
             tool_calls=resp["tool_calls"],
             content=resp["content"],
-            intent=intent,
+            intent="UNIFORM",
             agent_log=agent_log,
             latency=total_latency,
             input_tokens=resp["input_token"],
