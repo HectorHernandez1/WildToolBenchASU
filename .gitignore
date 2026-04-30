@@ -5,4 +5,5 @@ wild-tool-bench/*.log
 multi-agent-framework/.env
 wild-tool-bench/result/
 wild-tool-bench/score/
+wild-tool-bench/logs/
 .claude
