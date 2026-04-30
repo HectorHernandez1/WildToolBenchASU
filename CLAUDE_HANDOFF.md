@@ -108,7 +108,31 @@ wc -l result/wtbmas:qwen3:8b/Wild-Tool-Bench_result.jsonl   # max 256
 If a backbone hangs or fails, the chain script records it and moves on.
 The next backbone starts automatically.
 
-### 5. Sanity-check results vs baseline
+### 5. Three-dataset layout (v1 / v2 / v3)
+
+The repo holds three independent dataset families per backbone:
+
+```
+wild-tool-bench/
+├── score/<model>/                   # v1 — baseline (already populated)
+├── score_v2/<model>/                # v2 — eval-improvements (already populated)
+├── score/wtbmas:<model>/            # v3 — WTB-MAS raw output (the eval pipeline writes here)
+└── score_v3/<model>/   ──symlink──▶ ../score/wtbmas:<model>/
+```
+
+The `score_v3/` symlinks (and parallel `result_v3/`) are created automatically
+by the chain script after each backbone's eval completes (it invokes
+`scripts/link_v3.sh <backbone>`). You can refresh them manually any time:
+
+```bash
+bash scripts/link_v3.sh                        # all 4 backbones
+bash scripts/link_v3.sh qwen3:8b qwen3:14b     # subset
+```
+
+The aggregator (step 6) reads from `score_v3/` first and falls back to
+`score/wtbmas:*` if the symlink doesn't exist yet.
+
+### 5b. Sanity-check results vs baseline
 
 After each backbone completes, eyeball it. The chain runs the eval
 automatically, so:
@@ -117,13 +141,16 @@ automatically, so:
 python -c "
 import json
 for m in ['qwen3:8b']:    # update list after each completes
-    for src in ['score', 'score_v2', f'score']:
-        path = f'{src}/{m if src==\"score_v2\" else (\"wtbmas:\"+m if \"wtbmas\" not in src else m)}/Wild-Tool-Bench_metric.json'
+    for label, path in [
+        ('v1', f'score/{m}/Wild-Tool-Bench_metric.json'),
+        ('v2', f'score_v2/{m}/Wild-Tool-Bench_metric.json'),
+        ('v3', f'score_v3/{m}/Wild-Tool-Bench_metric.json'),
+    ]:
         try:
             d = json.load(open(path))
-            print(f'{path}: task_acc={d[\"total_info\"][\"task\"][\"accuracy\"]*100:.1f}%')
+            print(f'{label} {path}: task_acc={d[\"total_info\"][\"task\"][\"accuracy\"]*100:.1f}%')
         except FileNotFoundError:
-            print(f'{path}: not yet')
+            print(f'{label} {path}: not yet')
 "
 ```
 

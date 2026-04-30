@@ -100,6 +100,14 @@ for backbone in "${BACKBONES[@]}"; do
     else
         write_status "[$model] eval SKIPPED — no result file"
     fi
+
+    # Mirror the WTB-MAS outputs into result_v3/<backbone>/ and score_v3/<backbone>/
+    # so the on-disk layout matches the v1/v2/v3 framing used in the report.
+    if bash scripts/link_v3.sh "$backbone" >> "$LOG_DIR/v3_links.log" 2>&1; then
+        write_status "[$model] v3 symlinks updated"
+    else
+        write_status "[$model] v3 symlink WARNING (see logs/v3_links.log)"
+    fi
 done
 
 ELAPSED=$(( $(date +%s) - START_TIME ))
